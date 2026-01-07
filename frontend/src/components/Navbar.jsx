@@ -1,548 +1,549 @@
 import { useEffect, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, Link } from "react-router-dom";
 import {
   AppBar,
   Toolbar,
   Typography,
   Button,
   IconButton,
-  Menu,
-  MenuItem,
   Box,
   useMediaQuery,
   useTheme,
   Avatar,
-  Fade,
-  Slide,
-  Badge,
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ListItemButton,
+  Divider,
+  Container,
 } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
-import { DirectionsCar, Logout, Login, PersonAdd, AddCircle } from "@mui/icons-material";
+import {
+  Menu as MenuIcon,
+  Close as CloseIcon,
+  DirectionsCar,
+  Logout,
+  Login,
+  PersonAdd,
+  AddCircle,
+  Home,
+  Info,
+  ContactMail,
+} from "@mui/icons-material";
 import Search from "../pages/Search";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { logout as logoutAction } from '../redux/slices/authSlice';
+
 function Navbar() {
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const navigate = useNavigate();
   
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
-  console.log(user)
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
+      setScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
   const handleLogout = () => {
     dispatch(logoutAction());
-    toast.success("Logout successful!", {
+    toast.success("Logged out successfully!", {
       position: "top-right",
       autoClose: 3000,
     });
     navigate("/login", { replace: true });
+    setMobileOpen(false);
   };
-const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
   };
-const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
+
+  const navLinks = [
+    { to: "/", label: "Home", icon: <Home /> },
+    { to: "/about", label: "About", icon: <Info /> },
+    { to: "/contact", label: "Contact", icon: <ContactMail /> },
+  ];
+
+  // Mobile Drawer Content
+  const drawer = (
+    <Box sx={{ width: 280, height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {/* Drawer Header */}
+      <Box
+        sx={{
+          p: 3,
+          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box
+            sx={{
+              width: 40,
+              height: 40,
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, #F97316 0%, #FB923C 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <DirectionsCar sx={{ color: 'white', fontSize: 24 }} />
+          </Box>
+          <Typography variant="h6" sx={{ color: 'white', fontWeight: 700 }}>
+            AutoHood
+          </Typography>
+        </Box>
+        <IconButton onClick={handleDrawerToggle} sx={{ color: 'white' }}>
+          <CloseIcon />
+        </IconButton>
+      </Box>
+
+      {/* User Info (if logged in) */}
+      {isAuthenticated && (
+        <Box sx={{ p: 2, bgcolor: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Avatar
+              sx={{
+                width: 48,
+                height: 48,
+                bgcolor: '#0F172A',
+                fontWeight: 700,
+                fontSize: '1.2rem',
+              }}
+            >
+              {user?.name?.charAt(0).toUpperCase() || "U"}
+            </Avatar>
+            <Box>
+              <Typography variant="subtitle1" fontWeight={600} color="#0F172A">
+                {user?.name || "User"}
+              </Typography>
+              <Typography variant="body2" color="#64748B">
+                {user?.email || "Welcome back!"}
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+      )}
+
+      {/* Navigation Links */}
+      <List sx={{ flex: 1, py: 2 }}>
+        {navLinks.map((link) => (
+          <ListItem key={link.to} disablePadding>
+            <ListItemButton
+              component={NavLink}
+              to={link.to}
+              onClick={handleDrawerToggle}
+              sx={{
+                py: 1.5,
+                px: 3,
+                '&:hover': {
+                  bgcolor: '#F1F5F9',
+                },
+                '&.active': {
+                  bgcolor: '#FFF7ED',
+                  borderRight: '3px solid #F97316',
+                  '& .MuiListItemIcon-root': {
+                    color: '#F97316',
+                  },
+                  '& .MuiListItemText-primary': {
+                    color: '#F97316',
+                    fontWeight: 600,
+                  },
+                },
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40, color: '#64748B' }}>
+                {link.icon}
+              </ListItemIcon>
+              <ListItemText 
+                primary={link.label} 
+                primaryTypographyProps={{ fontWeight: 500 }}
+              />
+            </ListItemButton>
+          </ListItem>
+        ))}
+
+        <Divider sx={{ my: 2 }} />
+
+        {!isAuthenticated ? (
+          <>
+            <ListItem disablePadding>
+              <ListItemButton
+                component={NavLink}
+                to="/login"
+                onClick={handleDrawerToggle}
+                sx={{ py: 1.5, px: 3 }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <Login />
+                </ListItemIcon>
+                <ListItemText primary="Login" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton
+                component={NavLink}
+                to="/register"
+                onClick={handleDrawerToggle}
+                sx={{ py: 1.5, px: 3 }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <PersonAdd />
+                </ListItemIcon>
+                <ListItemText primary="Register" />
+              </ListItemButton>
+            </ListItem>
+          </>
+        ) : (
+          <ListItem disablePadding>
+            <ListItemButton
+              onClick={handleLogout}
+              sx={{ 
+                py: 1.5, 
+                px: 3,
+                color: '#EF4444',
+                '&:hover': {
+                  bgcolor: '#FEF2F2',
+                },
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40, color: '#EF4444' }}>
+                <Logout />
+              </ListItemIcon>
+              <ListItemText primary="Logout" />
+            </ListItemButton>
+          </ListItem>
+        )}
+      </List>
+
+      {/* Add Car CTA */}
+      <Box sx={{ p: 3, borderTop: '1px solid #E2E8F0' }}>
+        <Button
+          component={NavLink}
+          to="/add-car"
+          onClick={handleDrawerToggle}
+          fullWidth
+          variant="contained"
+          startIcon={<AddCircle />}
+          sx={{
+            py: 1.5,
+            background: 'linear-gradient(135deg, #F97316 0%, #FB923C 100%)',
+            color: 'white',
+            fontWeight: 600,
+            borderRadius: '12px',
+            textTransform: 'none',
+            fontSize: '1rem',
+            boxShadow: '0 4px 14px rgba(249, 115, 22, 0.4)',
+            '&:hover': {
+              background: 'linear-gradient(135deg, #EA580C 0%, #F97316 100%)',
+              boxShadow: '0 6px 20px rgba(249, 115, 22, 0.5)',
+            },
+          }}
+        >
+          Sell Your Car
+        </Button>
+      </Box>
+    </Box>
+  );
+
   return (
-    <Slide direction="down" in timeout={600}>
+    <>
       <AppBar
         position="sticky"
         elevation={0}
         sx={{
           background: scrolled 
-            ? "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-            : "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.98) 100%)",
-          backdropFilter: "blur(25px)",
-          WebkitBackdropFilter: "blur(25px)",
-          transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+            ? 'rgba(255, 255, 255, 0.95)'
+            : 'rgba(255, 255, 255, 0.98)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           borderBottom: scrolled 
-            ? "1px solid rgba(255, 255, 255, 0.2)" 
-            : "1px solid rgba(102, 126, 234, 0.15)",
+            ? '1px solid #E2E8F0'
+            : '1px solid transparent',
           boxShadow: scrolled 
-            ? "0 10px 40px rgba(102, 126, 234, 0.35), 0 4px 12px rgba(0, 0, 0, 0.1)" 
-            : "0 4px 20px rgba(102, 126, 234, 0.08), 0 2px 8px rgba(0, 0, 0, 0.05)",
-          zIndex: 1200,
+            ? '0 4px 20px rgba(15, 23, 42, 0.08)'
+            : 'none',
         }}
       >
-        <Toolbar sx={{ justifyContent: "space-between", py: { xs: 0.5, md: 1 }, px: { xs: 1, md: 2 } }}>
-          {/* Logo */}
-          <Box
-            component={NavLink}
-            to="/"
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: { xs: 1, md: 1.5 },
-              textDecoration: "none",
-              transition: "all 0.3s",
-              px: { xs: 1, md: 2 },
-              py: { xs: 0.5, md: 1 },
-              borderRadius: 2,
-              flexShrink: 0,
-              "&:hover": {
-                transform: "scale(1.05)",
-                bgcolor: scrolled ? "rgba(255,255,255,0.1)" : "rgba(102, 126, 234, 0.1)",
-              },
+        <Container maxWidth="xl">
+          <Toolbar 
+            sx={{ 
+              justifyContent: "space-between", 
+              py: { xs: 1, md: 1.5 }, 
+              px: { xs: 0, md: 1 },
+              minHeight: { xs: 64, md: 72 },
             }}
           >
+            {/* Logo */}
             <Box
+              component={Link}
+              to="/"
               sx={{
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
-                width: { xs: 36, md: 44 },
-                height: { xs: 36, md: 44 },
-                borderRadius: "50%",
-                background: scrolled 
-                  ? "linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.15) 100%)" 
-                  : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                boxShadow: scrolled 
-                  ? "0 6px 20px rgba(255, 255, 255, 0.4), inset 0 2px 8px rgba(255, 255, 255, 0.3)" 
-                  : "0 6px 20px rgba(102, 126, 234, 0.5), 0 0 0 3px rgba(102, 126, 234, 0.1)",
-                transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-                border: scrolled 
-                  ? "2px solid rgba(255, 255, 255, 0.4)" 
-                  : "2px solid transparent",
-                animation: scrolled ? "none" : "pulse 3s ease-in-out infinite",
-                "@keyframes pulse": {
-                  "0%, 100%": { boxShadow: "0 6px 20px rgba(102, 126, 234, 0.5), 0 0 0 3px rgba(102, 126, 234, 0.1)" },
-                  "50%": { boxShadow: "0 8px 30px rgba(102, 126, 234, 0.7), 0 0 0 5px rgba(102, 126, 234, 0.15)" },
+                gap: 1.5,
+                textDecoration: "none",
+                transition: "all 0.3s",
+                '&:hover': {
+                  transform: 'scale(1.02)',
                 },
               }}
             >
-              <DirectionsCar 
-                sx={{ 
-                  fontSize: { xs: 20, md: 26 }, 
-                  color: "white",
-                  transition: "all 0.4s",
-                  filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))",
-                }} 
-              />
-            </Box>
-            {!isMobile && (
+              <Box
+                sx={{
+                  width: { xs: 40, md: 44 },
+                  height: { xs: 40, md: 44 },
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 14px rgba(15, 23, 42, 0.25)',
+                }}
+              >
+                <DirectionsCar sx={{ color: '#F97316', fontSize: { xs: 22, md: 26 } }} />
+              </Box>
               <Typography
                 variant="h5"
-                fontWeight="800"
                 sx={{
-                  background: scrolled 
-                    ? "white" 
-                    : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                  backgroundClip: "text",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: scrolled ? "white" : "transparent",
-                  textShadow: scrolled 
-                    ? "0 2px 12px rgba(0, 0, 0, 0.3), 0 4px 20px rgba(255, 255, 255, 0.2)" 
-                    : "none",
-                  transition: "all 0.4s",
-                  letterSpacing: "1px",
-                  fontSize: { md: '1.5rem', lg: '1.75rem' },
-                  textTransform: "uppercase",
-                  position: "relative",
+                  color: '#0F172A',
+                  fontWeight: 800,
+                  letterSpacing: '-0.02em',
+                  fontSize: { xs: '1.25rem', md: '1.5rem' },
+                  display: { xs: 'none', sm: 'block' },
                 }}
               >
                 AutoHood
               </Typography>
+            </Box>
+
+            {/* Search Bar - Hidden on mobile, show in center */}
+            {!isTablet && (
+              <Box sx={{ flex: 1, maxWidth: 500, mx: 4 }}>
+                <Search />
+              </Box>
             )}
-          </Box>
 
-          {/* Search */}
-          <Box sx={{ flex: 1, maxWidth: { xs: 300, sm: 400, md: 500 }, mx: { xs: 1, sm: 2, md: 4 } }}>
-            <Search />
-          </Box>
+            {/* Desktop Navigation */}
+            {!isMobile && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {navLinks.map((link) => (
+                  <Button
+                    key={link.to}
+                    component={NavLink}
+                    to={link.to}
+                    sx={{
+                      color: '#475569',
+                      fontWeight: 500,
+                      textTransform: 'none',
+                      fontSize: '0.95rem',
+                      px: 2,
+                      py: 1,
+                      borderRadius: '10px',
+                      transition: 'all 0.2s',
+                      position: 'relative',
+                      '&:hover': {
+                        bgcolor: '#F1F5F9',
+                        color: '#0F172A',
+                      },
+                      '&.active': {
+                        color: '#F97316',
+                        bgcolor: '#FFF7ED',
+                        fontWeight: 600,
+                      },
+                    }}
+                  >
+                    {link.label}
+                  </Button>
+                ))}
 
-          {/* Desktop Menu */}
-          <Box sx={{ display: { xs: "none", md: "flex" }, gap: 1, alignItems: "center" }}>
-            <Button
-              component={NavLink}
-              to="/"
-              startIcon={<DirectionsCar />}
-              sx={{
-                color: scrolled ? "white" : "#667eea",
-                fontWeight: 600,
-                textTransform: "none",
-                fontSize: "1rem",
-                px: 2.5,
-                py: 1,
-                borderRadius: 2,
-                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                position: "relative",
-                overflow: "hidden",
-                "&:hover": {
-                  bgcolor: scrolled ? "rgba(255,255,255,0.15)" : "rgba(102, 126, 234, 0.12)",
-                  transform: "translateY(-2px)",
-                  boxShadow: scrolled 
-                    ? "0 4px 12px rgba(255, 255, 255, 0.2)" 
-                    : "0 4px 12px rgba(102, 126, 234, 0.2)",
-                },
-                "&::before": {
-                  content: '""',
-                  position: "absolute",
-                  bottom: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "2px",
-                  background: scrolled ? "white" : "linear-gradient(90deg, #667eea, #764ba2)",
-                  transform: "scaleX(0)",
-                  transformOrigin: "left",
-                  transition: "transform 0.3s ease",
-                },
-                "&:hover::before": {
-                  transform: "scaleX(1)",
-                },
-              }}
-            >
-              Home
-            </Button>
+                {!isAuthenticated ? (
+                  <>
+                    <Button
+                      component={NavLink}
+                      to="/login"
+                      sx={{
+                        color: '#475569',
+                        fontWeight: 500,
+                        textTransform: 'none',
+                        fontSize: '0.95rem',
+                        px: 2,
+                        py: 1,
+                        borderRadius: '10px',
+                        '&:hover': {
+                          bgcolor: '#F1F5F9',
+                          color: '#0F172A',
+                        },
+                      }}
+                    >
+                      Login
+                    </Button>
+                    <Button
+                      component={NavLink}
+                      to="/register"
+                      variant="outlined"
+                      sx={{
+                        color: '#0F172A',
+                        borderColor: '#0F172A',
+                        fontWeight: 600,
+                        textTransform: 'none',
+                        fontSize: '0.95rem',
+                        px: 2.5,
+                        py: 1,
+                        borderRadius: '10px',
+                        borderWidth: 2,
+                        '&:hover': {
+                          borderWidth: 2,
+                          bgcolor: '#0F172A',
+                          color: 'white',
+                        },
+                      }}
+                    >
+                      Register
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Box 
+                      sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: 1.5, 
+                        px: 2,
+                        py: 0.5,
+                        borderRadius: '12px',
+                        bgcolor: '#F8FAFC',
+                      }}
+                    >
+                      <Avatar
+                        sx={{
+                          width: 36,
+                          height: 36,
+                          bgcolor: '#0F172A',
+                          fontWeight: 600,
+                          fontSize: '0.95rem',
+                        }}
+                      >
+                        {user?.name?.charAt(0).toUpperCase() || "U"}
+                      </Avatar>
+                      <Typography
+                        sx={{
+                          color: '#0F172A',
+                          fontWeight: 600,
+                          fontSize: '0.9rem',
+                        }}
+                      >
+                        {user?.name || "User"}
+                      </Typography>
+                    </Box>
+                    <Button
+                      onClick={handleLogout}
+                      sx={{
+                        color: '#EF4444',
+                        fontWeight: 500,
+                        textTransform: 'none',
+                        fontSize: '0.95rem',
+                        px: 2,
+                        py: 1,
+                        borderRadius: '10px',
+                        '&:hover': {
+                          bgcolor: '#FEF2F2',
+                        },
+                      }}
+                    >
+                      Logout
+                    </Button>
+                  </>
+                )}
 
-            {!isAuthenticated ? (
-              <>
                 <Button
                   component={NavLink}
-                  to="/login"
-                  startIcon={<Login />}
-                  sx={{
-                    color: scrolled ? "white" : "#667eea",
-                    fontWeight: 600,
-                    textTransform: "none",
-                    fontSize: "1rem",
-                    px: 2.5,
-                    py: 1,
-                    borderRadius: 2,
-                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                    "&:hover": {
-                      bgcolor: scrolled ? "rgba(255,255,255,0.15)" : "rgba(102, 126, 234, 0.12)",
-                      transform: "translateY(-2px)",
-                      boxShadow: scrolled 
-                        ? "0 4px 12px rgba(255, 255, 255, 0.2)" 
-                        : "0 4px 12px rgba(102, 126, 234, 0.2)",
-                    },
-                  }}
-                >
-                  Login
-                </Button>
-                <Button
-                  component={NavLink}
-                  to="/register"
-                  startIcon={<PersonAdd />}
+                  to="/add-car"
                   variant="contained"
+                  startIcon={<AddCircle />}
                   sx={{
-                    background: scrolled 
-                      ? "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%)" 
-                      : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                    color: scrolled ? "#667eea" : "white",
-                    fontWeight: 700,
-                    textTransform: "none",
-                    fontSize: "1rem",
-                    px: 3.5,
-                    py: 1.2,
-                    borderRadius: 2.5,
-                    border: scrolled ? "2px solid rgba(102, 126, 234, 0.3)" : "none",
-                    transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-                    position: "relative",
-                    overflow: "hidden",
-                    boxShadow: scrolled 
-                      ? "0 4px 15px rgba(255, 255, 255, 0.3)" 
-                      : "0 6px 20px rgba(102, 126, 234, 0.4)",
-                    "&:hover": {
-                      transform: "translateY(-3px)",
-                      boxShadow: scrolled 
-                        ? "0 8px 25px rgba(255, 255, 255, 0.4), 0 4px 12px rgba(102, 126, 234, 0.3)" 
-                        : "0 10px 30px rgba(102, 126, 234, 0.6)",
-                      background: scrolled 
-                        ? "linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.95) 100%)" 
-                        : "linear-gradient(135deg, #764ba2 0%, #667eea 100%)",
-                    },
-                    "&::before": {
-                      content: '""',
-                      position: "absolute",
-                      top: 0,
-                      left: "-100%",
-                      width: "100%",
-                      height: "100%",
-                      background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)",
-                      transition: "left 0.6s",
-                    },
-                    "&:hover::before": {
-                      left: "100%",
-                    },
-                  }}
-                >
-                  Register
-                </Button>
-              </>
-            ) : (
-              <>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mx: 2, px: 2, py: 1, borderRadius: 2, transition: "all 0.3s", "&:hover": { bgcolor: scrolled ? "rgba(255,255,255,0.1)" : "rgba(102, 126, 234, 0.08)" } }}>
-                  <Avatar
-                    sx={{
-                      width: 38,
-                      height: 38,
-                      bgcolor: scrolled ? "white" : "#667eea",
-                      color: scrolled ? "#667eea" : "white",
-                      fontWeight: "bold",
-                      fontSize: "1.1rem",
-                      boxShadow: scrolled 
-                        ? "0 4px 12px rgba(255, 255, 255, 0.3)" 
-                        : "0 4px 12px rgba(102, 126, 234, 0.3)",
-                      border: scrolled ? "2px solid rgba(255, 255, 255, 0.3)" : "2px solid transparent",
-                      transition: "all 0.3s",
-                    }}
-                  >
-                    {user?.name?.charAt(0).toUpperCase() || "U"}
-                  </Avatar>
-                  <Typography
-                    sx={{
-                      color: scrolled ? "white" : "#667eea",
-                      fontWeight: 600,
-                      fontSize: "0.95rem",
-                      textShadow: scrolled ? "0 1px 3px rgba(0,0,0,0.2)" : "none",
-                    }}
-                  >
-                    {user?.name || "User"}
-                  </Typography>
-                </Box>
-                <Button
-                  onClick={handleLogout}
-                  startIcon={<Logout />}
-                  sx={{
-                    color: scrolled ? "rgba(255, 255, 255, 0.95)" : "#f5576c",
+                    ml: 1,
+                    background: 'linear-gradient(135deg, #F97316 0%, #FB923C 100%)',
+                    color: 'white',
                     fontWeight: 600,
-                    textTransform: "none",
-                    fontSize: "1rem",
-                    px: 2.5,
-                    py: 1,
-                    borderRadius: 2,
-                    border: scrolled ? "1px solid rgba(255, 255, 255, 0.3)" : "1px solid rgba(245, 87, 108, 0.3)",
-                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                    "&:hover": {
-                      bgcolor: scrolled ? "rgba(255, 87, 108, 0.2)" : "rgba(245, 87, 108, 0.12)",
-                      transform: "translateY(-2px)",
-                      boxShadow: "0 4px 12px rgba(245, 87, 108, 0.3)",
-                      borderColor: "#f5576c",
+                    textTransform: 'none',
+                    fontSize: '0.95rem',
+                    px: 3,
+                    py: 1.2,
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 14px rgba(249, 115, 22, 0.35)',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #EA580C 0%, #F97316 100%)',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 6px 20px rgba(249, 115, 22, 0.45)',
                     },
                   }}
                 >
-                  Logout
+                  Sell Your Car
                 </Button>
-              </>
+              </Box>
             )}
 
-            <Button
-              component={NavLink}
-              to="/add-car"
-              startIcon={<AddCircle />}
-              variant="contained"
-              sx={{
-                background: scrolled 
-                  ? "linear-gradient(135deg, rgba(245, 87, 108, 0.95) 0%, rgba(240, 147, 251, 0.9) 100%)" 
-                  : "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-                color: "white",
-                fontWeight: 700,
-                textTransform: "none",
-                fontSize: "1rem",
-                px: 3.5,
-                py: 1.2,
-                borderRadius: 2.5,
-                border: scrolled ? "2px solid rgba(255, 255, 255, 0.4)" : "none",
-                transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-                position: "relative",
-                overflow: "hidden",
-                boxShadow: "0 6px 20px rgba(245, 87, 108, 0.45)",
-                "&:hover": {
-                  transform: "translateY(-3px) scale(1.02)",
-                  boxShadow: "0 10px 35px rgba(245, 87, 108, 0.6), 0 4px 15px rgba(240, 147, 251, 0.4)",
-                  background: scrolled 
-                    ? "linear-gradient(135deg, rgba(245, 87, 108, 1) 0%, rgba(240, 147, 251, 1) 100%)" 
-                    : "linear-gradient(135deg, #f5576c 0%, #f093fb 100%)",
-                },
-                "&::after": {
-                  content: '""',
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  width: "0",
-                  height: "0",
-                  borderRadius: "50%",
-                  background: "rgba(255, 255, 255, 0.4)",
-                  transform: "translate(-50%, -50%)",
-                  transition: "width 0.6s, height 0.6s",
-                },
-                "&:hover::after": {
-                  width: "300px",
-                  height: "300px",
-                },
-              }}
-            >
-              Add Car
-            </Button>
-          </Box>
+            {/* Mobile Menu Button */}
+            {isMobile && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <IconButton
+                  onClick={handleDrawerToggle}
+                  sx={{
+                    color: '#0F172A',
+                    p: 1,
+                  }}
+                >
+                  <MenuIcon sx={{ fontSize: 28 }} />
+                </IconButton>
+              </Box>
+            )}
+          </Toolbar>
 
-          {/* Mobile Menu */}
-          <Box sx={{ display: { xs: "flex", md: "none" } }}>
-            <IconButton
-              size="large"
-              edge="end"
-              onClick={handleMenuOpen}
-              sx={{
-                color: scrolled ? "white" : "#667eea",
-                transition: "all 0.3s",
-                "&:hover": {
-                  transform: "scale(1.1)",
-                },
-              }}
-            >
-              <Badge badgeContent={isAuthenticated ? "✓" : null} color="success">
-                <MenuIcon />
-              </Badge>
-            </IconButton>
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleMenuClose}
-              TransitionComponent={Fade}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'right',
-              }}
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              PaperProps={{
-                sx: {
-                  mt: 1,
-                  borderRadius: 2,
-                  minWidth: 220,
-                  maxWidth: 280,
-                  background: "white",
-                  
-                  boxShadow: "0 8px 32px rgba(102, 126, 234, 0.2)",
-                },
-              }}
-            >
-              <MenuItem
-                component={NavLink}
-                to="/"
-                onClick={handleMenuClose}
-                sx={{
-                  py: 1.5,
-                  gap: 1,
-                  "&:hover": {
-                    bgcolor: "rgba(102, 126, 234, 0.1)",
-                  },
-                }}
-              >
-                <DirectionsCar fontSize="small" />
-                Home
-              </MenuItem>
-
-              {!isAuthenticated ? (
-                <>
-                  <MenuItem
-                    component={NavLink}
-                    to="/login"
-                    onClick={handleMenuClose}
-                    sx={{
-                      py: 1.5,
-                      gap: 1,
-                      "&:hover": {
-                        bgcolor: "rgba(102, 126, 234, 0.1)",
-                      },
-                    }}
-                  >
-                    <Login fontSize="small" />
-                    Login
-                  </MenuItem>
-                  <MenuItem
-                    component={NavLink}
-                    to="/register"
-                    onClick={handleMenuClose}
-                    sx={{
-                      py: 1.5,
-                      gap: 1,
-                      "&:hover": {
-                        bgcolor: "rgba(102, 126, 234, 0.1)",
-                      },
-                    }}
-                  >
-                    <PersonAdd fontSize="small" />
-                    Register
-                  </MenuItem>
-                </>
-              ) : (
-                <>
-                  <MenuItem
-                    disabled
-                    sx={{
-                      py: 1.5,
-                      gap: 1,
-                      fontWeight: 600,
-                      color: "#667eea !important",
-                    }}
-                  >
-                    <Avatar sx={{ width: 24, height: 24, fontSize: "0.8rem" }}>
-                      {user?.name?.charAt(0).toUpperCase() || "U"}
-                    </Avatar>
-                    {user?.name || "User"}
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => {
-                      handleLogout();
-                      handleMenuClose();
-                    }}
-                    sx={{
-                      py: 1.5,
-                      gap: 1,
-                      color: "#f5576c",
-                      "&:hover": {
-                        bgcolor: "rgba(245, 87, 108, 0.1)",
-                      },
-                    }}
-                  >
-                    <Logout fontSize="small" />
-                    Logout
-                  </MenuItem>
-                </>
-              )}
-
-              <MenuItem
-                component={NavLink}
-                to="/add-car"
-                onClick={handleMenuClose}
-                sx={{
-                  py: 1.5,
-                  gap: 1,
-                  color: "#f5576c",
-                  fontWeight: 600,
-                  background: "linear-gradient(135deg, rgba(240, 147, 251, 0.1) 0%, rgba(245, 87, 108, 0.1) 100%)",
-                  mt: 1,
-                  borderRadius: 1,
-                  "&:hover": {
-                    bgcolor: "rgba(245, 87, 108, 0.2)",
-                    transform: "translateX(5px)",
-                  },
-                }}
-              >
-                <AddCircle fontSize="small" />
-                Add Car
-              </MenuItem>
-            </Menu>
-          </Box>
-        </Toolbar>
+          {/* Mobile Search Bar */}
+          {isTablet && (
+            <Box sx={{ pb: 2, px: 1 }}>
+              <Search />
+            </Box>
+          )}
+        </Container>
       </AppBar>
-    </Slide>
+
+      {/* Mobile Drawer */}
+      <Drawer
+        anchor="right"
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        ModalProps={{
+          keepMounted: true,
+        }}
+        sx={{
+          display: { lg: 'none' },
+          '& .MuiDrawer-paper': {
+            width: 280,
+            boxSizing: 'border-box',
+          },
+        }}
+      >
+        {drawer}
+      </Drawer>
+    </>
   );
 }
+
 export default Navbar;

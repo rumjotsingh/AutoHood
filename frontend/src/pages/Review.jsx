@@ -1,4 +1,4 @@
-import  {  useState } from "react";
+import { useState } from "react";
 import { 
   Box, 
   Typography, 
@@ -7,26 +7,28 @@ import {
   Rating, 
   Paper,
   Fade,
-  Zoom,
+  Stack,
+  InputAdornment,
 } from "@mui/material";
-import { Send, Star } from "@mui/icons-material";
+import { Send, Star, RateReview, Edit } from "@mui/icons-material";
 import PropTypes from 'prop-types';
 import { toast } from 'react-toastify';
 import { useParams } from 'react-router-dom';
 import { API_ENDPOINTS } from '../config/api';
 
-const ReviewsForm = ({refresh}) => {
+const ReviewsForm = ({ refresh }) => {
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState("");
+  const [hoveredRating, setHoveredRating] = useState(-1);
   
   const { id } = useParams();
 
   const handleSubmit = async () => {
     if (rating && review.trim()) {
       try {
-        const token = localStorage.getItem("token"); // Retrieve the token from localStorage or wherever it is stored
+        const token = localStorage.getItem("token");
         if (!token) {
-          toast.error("You must me logged");
+          toast.error("You must be logged in to submit a review");
           return;
         }
   
@@ -37,21 +39,19 @@ const ReviewsForm = ({refresh}) => {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            carListingId:id,
+            carListingId: id,
             rating,
-            comment: review, // Assuming your API expects `description` for the review content
+            comment: review,
           }),
         });
       
-        if (response.status===200) {
-        
-          toast.success("The review added sucessfully");
-          refresh()
-           
-          setRating(0); // Reset the form
+        if (response.status === 200) {
+          toast.success("Review submitted successfully!");
+          refresh();
+          setRating(0);
           setReview("");
         } else {
-           toast.error("Failed to Submit ");
+          toast.error("Failed to submit review");
         }
       } catch (error) {
         console.error("Error:", error.message);
@@ -61,125 +61,201 @@ const ReviewsForm = ({refresh}) => {
       toast.error("Please provide a rating and a review description.");
     }
   };
-  
 
+  const ratingLabels = {
+    1: 'Poor',
+    2: 'Fair',
+    3: 'Good',
+    4: 'Very Good',
+    5: 'Excellent',
+  };
 
   return (
-    <Box sx={{ mt: 6 }}>
-      <Fade in timeout={800}>
-        <Paper
-          elevation={10}
-          sx={{
-            p: { xs: 3, md: 4 },
-            borderRadius: 4,
-            background: "linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)",
-            border: "2px solid",
-            borderColor: "rgba(102, 126, 234, 0.2)",
-            transition: "all 0.3s",
-            "&:hover": {
-              borderColor: "rgba(102, 126, 234, 0.4)",
-              boxShadow: "0 12px 40px rgba(102, 126, 234, 0.15)",
-            },
-          }}
-        >
-          <Box textAlign="center" mb={4}>
-            <Zoom in timeout={1000}>
-              <Star sx={{ fontSize: 50, color: "#667eea", mb: 2 }} />
-            </Zoom>
-            <Typography 
-              variant="h4" 
-              fontWeight="bold" 
-              sx={{
-                fontSize: { xs: '1.75rem', md: '2.125rem' },
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                backgroundClip: "text",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                mb: 1,
-              }}
-            >
-              Share Your Experience
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Your feedback helps others make better decisions
-            </Typography>
+    <Fade in timeout={600}>
+      <Paper
+        elevation={0}
+        sx={{
+          p: { xs: 4, md: 5 },
+          borderRadius: '24px',
+          bgcolor: 'white',
+          border: '1px solid #E2E8F0',
+          transition: 'all 0.3s',
+          '&:hover': {
+            borderColor: '#F97316',
+            boxShadow: '0 12px 40px rgba(249, 115, 22, 0.1)',
+          },
+        }}
+      >
+        {/* Header */}
+        <Box sx={{ textAlign: 'center', mb: 5 }}>
+          <Box
+            sx={{
+              width: 64,
+              height: 64,
+              borderRadius: '16px',
+              background: 'linear-gradient(135deg, #F97316 0%, #FB923C 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mx: 'auto',
+              mb: 3,
+              boxShadow: '0 8px 30px rgba(249, 115, 22, 0.3)',
+            }}
+          >
+            <RateReview sx={{ fontSize: 32, color: 'white' }} />
           </Box>
+          <Typography 
+            variant="h4" 
+            fontWeight={700}
+            color="#0F172A"
+            sx={{ fontSize: { xs: '1.5rem', md: '1.75rem' } }}
+          >
+            Share Your Experience
+          </Typography>
+          <Typography variant="body1" color="#64748B" sx={{ mt: 1 }}>
+            Your feedback helps others make better decisions
+          </Typography>
+        </Box>
 
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-            <Box textAlign="center">
-              <Typography variant="h6" gutterBottom fontWeight="600">
-                How would you rate this car?
-              </Typography>
+        <Stack spacing={4}>
+          {/* Rating Section */}
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="subtitle2" fontWeight={600} color="#0F172A" gutterBottom>
+              How would you rate this car?
+            </Typography>
+            <Box sx={{ mt: 2, mb: 1 }}>
               <Rating
                 name="review-rating"
                 value={rating}
                 onChange={(event, newValue) => setRating(newValue)}
+                onChangeActive={(event, newHover) => setHoveredRating(newHover)}
                 size="large"
                 sx={{
-                  fontSize: { xs: '2rem', md: '3rem' },
+                  fontSize: { xs: '2.5rem', md: '3rem' },
                   "& .MuiRating-iconFilled": {
-                    color: "#667eea",
+                    color: '#F97316',
                   },
                   "& .MuiRating-iconHover": {
-                    color: "#764ba2",
+                    color: '#FB923C',
+                  },
+                  "& .MuiRating-iconEmpty": {
+                    color: '#E2E8F0',
                   },
                 }}
               />
             </Box>
+            {rating !== null && (
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: '#F97316',
+                  fontWeight: 600,
+                  minHeight: 24,
+                }}
+              >
+                {ratingLabels[hoveredRating !== -1 ? hoveredRating : rating] || 'Select a rating'}
+              </Typography>
+            )}
+          </Box>
 
+          {/* Review Text */}
+          <Box>
+            <Typography variant="subtitle2" fontWeight={600} color="#0F172A" mb={1.5}>
+              Write your review
+            </Typography>
             <TextField
-              label="Your Review"
               variant="outlined"
               multiline
               rows={5}
               value={review}
               onChange={(e) => setReview(e.target.value)}
               fullWidth
-              placeholder="Tell us about your experience with this car..."
+              placeholder="Share your thoughts about this car... What did you like? What could be better?"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
+                    <Edit sx={{ color: '#94A3B8', fontSize: 20 }} />
+                  </InputAdornment>
+                ),
+              }}
               sx={{
                 "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  transition: "all 0.3s",
-                  "&:hover": {
-                    boxShadow: "0 4px 12px rgba(102, 126, 234, 0.2)",
+                  borderRadius: '14px',
+                  bgcolor: '#F8FAFC',
+                  transition: 'all 0.3s',
+                  "& fieldset": {
+                    borderColor: '#E2E8F0',
                   },
-                  "&.Mui-focused": {
-                    boxShadow: "0 4px 12px rgba(102, 126, 234, 0.3)",
+                  "&:hover fieldset": {
+                    borderColor: '#F97316',
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: '#F97316',
+                    borderWidth: 2,
                   },
                 },
               }}
             />
-
-            <Button 
-              variant="contained" 
-              onClick={handleSubmit}
-              startIcon={<Send />}
-              fullWidth
-              sx={{
-                py: 1.5,
-                borderRadius: 2,
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                fontWeight: "bold",
-                fontSize: "1rem",
-                textTransform: "none",
-                transition: "all 0.3s",
-                "&:hover": {
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 8px 20px rgba(102, 126, 234, 0.4)",
-                },
-              }}
-            >
-              Submit Review
-            </Button>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+              <Typography variant="caption" color="#94A3B8">
+                {review.length}/500 characters
+              </Typography>
+            </Box>
           </Box>
-        </Paper>
-      </Fade>
-    </Box>
+
+          {/* Submit Button */}
+          <Button 
+            variant="contained" 
+            onClick={handleSubmit}
+            startIcon={<Send />}
+            fullWidth
+            disabled={!rating || !review.trim()}
+            sx={{
+              py: 1.75,
+              borderRadius: '14px',
+              background: 'linear-gradient(135deg, #F97316 0%, #FB923C 100%)',
+              fontWeight: 600,
+              fontSize: '1rem',
+              textTransform: 'none',
+              boxShadow: '0 8px 30px rgba(249, 115, 22, 0.4)',
+              transition: 'all 0.3s',
+              "&:hover": {
+                background: 'linear-gradient(135deg, #EA580C 0%, #F97316 100%)',
+                transform: 'translateY(-2px)',
+                boxShadow: '0 12px 40px rgba(249, 115, 22, 0.5)',
+              },
+              "&:disabled": {
+                background: '#E2E8F0',
+                boxShadow: 'none',
+              },
+            }}
+          >
+            Submit Review
+          </Button>
+
+          {/* Helper Text */}
+          <Typography 
+            variant="caption" 
+            color="#94A3B8" 
+            sx={{ 
+              textAlign: 'center',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 0.5,
+            }}
+          >
+            <Star sx={{ fontSize: 14 }} />
+            Your review will be visible to other users after submission
+          </Typography>
+        </Stack>
+      </Paper>
+    </Fade>
   );
 };
+
 ReviewsForm.propTypes = {
   refresh: PropTypes.func.isRequired,
 };
-
 
 export default ReviewsForm;
