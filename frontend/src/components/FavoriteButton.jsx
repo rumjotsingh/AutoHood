@@ -1,4 +1,3 @@
-import React from "react";
 import { IconButton, Tooltip, CircularProgress } from "@mui/material";
 import { Favorite, FavoriteBorder } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
@@ -13,8 +12,8 @@ const FavoriteButton = ({ carId, size = "medium", showTooltip = true }) => {
   const navigate = useNavigate();
   
   const { isAuthenticated } = useSelector((state) => state.auth);
-  const { favoriteIds, checkingFavorite } = useSelector(
-    (state) => state.favorites
+  const { favoriteIds = [], checkingFavorite = {} } = useSelector(
+    (state) => state.favorites || {}
   );
   
   const isFavorite = favoriteIds.includes(carId);

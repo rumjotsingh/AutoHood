@@ -27,6 +27,7 @@ export const API_ENDPOINTS = {
   // Reviews endpoints
   REVIEWS: {
     BY_CAR: (id) => `${BASE_URL}/v1/reviews/cars/${id}/reviews`,
+    CREATE: (id) => `${BASE_URL}/v1/reviews/cars/${id}/reviews`,
     DELETE: (id) => `${BASE_URL}/v1/reviews/${id}`,
   },
 

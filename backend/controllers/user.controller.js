@@ -39,10 +39,18 @@ export const loginController = async (req, res) => {
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
-    //token generation
-    const token = JWT.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "10h",
-    });
+    //token generation - include user info for frontend display
+    const token = JWT.sign(
+      {
+        userId: user._id,
+        name: user.name,
+        email: user.email,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "10h",
+      }
+    );
     return res.json({ token, message: "Login successful" });
   } catch (err) {
     res.status(500).json({ error: "Login failed", details: err });
@@ -57,9 +65,17 @@ export const googleLoginController = async (req, res) => {
       user = new User({ googleId, email, name });
       await user.save();
     }
-    const token = JWT.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "10h",
-    });
+    const token = JWT.sign(
+      {
+        userId: user._id,
+        name: user.name,
+        email: user.email,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "10h",
+      }
+    );
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

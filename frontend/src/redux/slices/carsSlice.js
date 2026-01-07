@@ -1,14 +1,13 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-import API_ENDPOINTS from "../../config/api";
+import api from "../../config/axiosInstance";
 
 // Async thunks for API calls
 export const fetchAllCars = createAsyncThunk(
   "cars/fetchAll",
   async ({ page = 1, limit = 3 }, { rejectWithValue }) => {
     try {
-      const response = await axios.get(
-        `${API_ENDPOINTS.CARS.ALL}?page=${page}&limit=${limit}`
+      const response = await api.get(
+        `/v1/cars/all-cars?page=${page}&limit=${limit}`
       );
       return response.data;
     } catch (error) {
@@ -21,9 +20,8 @@ export const fetchCarDetails = createAsyncThunk(
   "cars/fetchDetails",
   async (id, { rejectWithValue }) => {
     try {
-      const response = await fetch(API_ENDPOINTS.CARS.DETAILS(id));
-      const data = await response.json();
-      return data;
+      const response = await api.get(`/v1/cars/all-cars/${id}`);
+      return response.data;
     } catch {
       return rejectWithValue("Failed to fetch car details");
     }
@@ -34,11 +32,10 @@ export const searchCars = createAsyncThunk(
   "cars/search",
   async (searchTerm, { rejectWithValue }) => {
     try {
-      const response = await fetch(
-        `${API_ENDPOINTS.CARS.SEARCH}?query=${encodeURIComponent(searchTerm)}`
+      const response = await api.get(
+        `/v1/cars/search?query=${encodeURIComponent(searchTerm)}`
       );
-      const data = await response.json();
-      return data;
+      return response.data;
     } catch {
       return rejectWithValue("Failed to search cars");
     }
@@ -47,14 +44,9 @@ export const searchCars = createAsyncThunk(
 
 export const deleteCar = createAsyncThunk(
   "cars/delete",
-  async ({ id, token }, { rejectWithValue }) => {
+  async ({ id }, { rejectWithValue }) => {
     try {
-      await axios.delete(API_ENDPOINTS.CARS.DELETE(id), {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await api.delete(`/v1/cars/car-listing/${id}`);
       return id;
     } catch (error) {
       return rejectWithValue(error.response?.data || "Failed to delete car");

@@ -1,13 +1,12 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-import { API_ENDPOINTS } from "../../config/api";
+import api from "../../config/axiosInstance";
 
 // Async thunks
 export const advancedSearch = createAsyncThunk(
   "search/advancedSearch",
   async (searchParams, { rejectWithValue }) => {
     try {
-      const response = await axios.get(API_ENDPOINTS.SEARCH.ADVANCED, {
+      const response = await api.get("/v1/search/advanced", {
         params: searchParams,
       });
       return response.data;
@@ -21,7 +20,7 @@ export const fetchFilterOptions = createAsyncThunk(
   "search/fetchFilterOptions",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(API_ENDPOINTS.SEARCH.FILTER_OPTIONS);
+      const response = await api.get("/v1/search/filter-options");
       return response.data.filters;
     } catch (error) {
       return rejectWithValue(
@@ -35,8 +34,8 @@ export const compareCars = createAsyncThunk(
   "search/compareCars",
   async (carIds, { rejectWithValue }) => {
     try {
-      const response = await axios.get(API_ENDPOINTS.SEARCH.COMPARE, {
-        params: { ids: carIds.join(",") },
+      const response = await api.get("/v1/search/compare", {
+        params: { carIds: carIds.join(",") },
       });
       return response.data;
     } catch (error) {
@@ -51,7 +50,7 @@ export const fetchSimilarCars = createAsyncThunk(
   "search/fetchSimilarCars",
   async (carId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(API_ENDPOINTS.SEARCH.SIMILAR(carId));
+      const response = await api.get(`/v1/search/similar/${carId}`);
       return response.data.similarCars;
     } catch (error) {
       return rejectWithValue(
@@ -65,7 +64,7 @@ export const fetchTrendingCars = createAsyncThunk(
   "search/fetchTrendingCars",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(API_ENDPOINTS.SEARCH.TRENDING);
+      const response = await api.get("/v1/search/trending");
       return response.data.trendingCars;
     } catch (error) {
       return rejectWithValue(
@@ -204,8 +203,9 @@ const searchSlice = createSlice({
       })
       .addCase(compareCars.fulfilled, (state, action) => {
         state.compareLoading = false;
-        state.comparisonData = action.payload.comparison;
-        state.comparisonInsights = action.payload.insights;
+        state.comparisonData =
+          action.payload.cars || action.payload.comparison || [];
+        state.comparisonInsights = action.payload.insights || {};
       })
       .addCase(compareCars.rejected, (state, action) => {
         state.compareLoading = false;

@@ -3,7 +3,7 @@ import rateLimit from "express-rate-limit";
 // General rate limiter
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: 1000000, // Limit each IP to 100 requests per windowMs
   message: {
     success: false,
     message:
@@ -16,7 +16,7 @@ export const generalLimiter = rateLimit({
 // Stricter rate limiter for auth routes
 export const authLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 1000, // 10 attempts per hour
+  max: 100000000, // 10 attempts per hour
   message: {
     success: false,
     message: "Too many login attempts, please try again after an hour",
@@ -28,7 +28,7 @@ export const authLimiter = rateLimit({
 // Rate limiter for API routes
 export const apiLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
-  max: 300, // 30 requests per minute
+  max: 3000000, // 30 requests per minute
   message: {
     success: false,
     message: "Too many API requests, please slow down",

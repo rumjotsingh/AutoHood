@@ -11,7 +11,6 @@ import {
   Box, 
   Pagination,
   Chip,
-  IconButton,
   Button,
   Stack,
   Paper,
@@ -22,8 +21,6 @@ import {
   Speed, 
   ColorLens, 
   LocalGasStation,
-  Favorite,
-  FavoriteBorder,
   DirectionsCar,
   VerifiedUser,
   SupportAgent,
@@ -41,14 +38,16 @@ import { CarGridSkeleton } from "../components/Skeleton";
 import LazyLoad from 'react-lazyload';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { fetchAllCars, setCurrentPage } from '../redux/slices/carsSlice';
+import { fetchFavorites } from '../redux/slices/favoritesSlice';
+import FavoriteButton from "../components/FavoriteButton";
 
 function Homepage() {
   const [mounted, setMounted] = useState(false);
-  const [favorites, setFavorites] = useState(new Set());
   
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { cars, loading, pagination } = useAppSelector((state) => state.cars);
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     setMounted(true);
@@ -56,7 +55,12 @@ function Homepage() {
       page: pagination.currentPage, 
       limit: 6 
     }));
-  }, [pagination.currentPage, dispatch]);
+    
+    // Fetch user's favorites if logged in
+    if (isAuthenticated) {
+      dispatch(fetchFavorites());
+    }
+  }, [pagination.currentPage, dispatch, isAuthenticated]);
 
   const handleCarClick = (id) => {
     navigate(`/cars/${id}`);
@@ -65,19 +69,6 @@ function Homepage() {
   const handlePageChange = (event, value) => {
     dispatch(setCurrentPage(value));
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const toggleFavorite = (e, carId) => {
-    e.stopPropagation();
-    setFavorites(prev => {
-      const newFavorites = new Set(prev);
-      if (newFavorites.has(carId)) {
-        newFavorites.delete(carId);
-      } else {
-        newFavorites.add(carId);
-      }
-      return newFavorites;
-    });
   };
 
   // Trust Stats
@@ -429,9 +420,7 @@ function Homepage() {
                 {cars.map((car) => (
                   <Grid item xs={12} sm={6} md={4} key={car._id}>
                     <Card
-                      onClick={() => handleCarClick(car._id)}
                       sx={{
-                        cursor: "pointer",
                         height: "100%",
                         display: "flex",
                         flexDirection: "column",
@@ -440,6 +429,7 @@ function Homepage() {
                         transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                         border: "1px solid #E2E8F0",
                         boxShadow: '0 4px 20px rgba(15, 23, 42, 0.08)',
+                        position: "relative",
                         "&:hover": {
                           transform: "translateY(-8px)",
                           boxShadow: "0 20px 40px rgba(15, 23, 42, 0.15)",
@@ -449,13 +439,29 @@ function Homepage() {
                         },
                       }}
                     >
-                      <CardActionArea sx={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "stretch" }}>
+                      {/* Favorite Button - Outside CardActionArea to prevent button nesting */}
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          top: 12,
+                          right: 12,
+                          zIndex: 10,
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <FavoriteButton carId={car._id} size="small" showTooltip={true} />
+                      </Box>
+
+                      <CardActionArea 
+                        onClick={() => handleCarClick(car._id)}
+                        sx={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "stretch" }}
+                      >
                         <Box sx={{ position: "relative", overflow: "hidden", height: 200, flexShrink: 0 }}>
                           <LazyLoad height={200} offset={100} once>
                             <CardMedia
                               component="img"
-                              image={`${car?.image?.url}`}
-                              alt={`${car.company} car`}
+                              image={car?.image?.url || car?.image || '/placeholder-car.png'}
+                              alt={`${car.company || car.carName || 'Car'}`}
                               className="car-image"
                               sx={{
                                 width: "100%",
@@ -463,31 +469,11 @@ function Homepage() {
                                 objectFit: "cover",
                                 transition: "transform 0.5s ease",
                               }}
+                              onError={(e) => {
+                                e.target.src = 'https://via.placeholder.com/400x200?text=No+Image';
+                              }}
                             />
                           </LazyLoad>
-                          
-                          {/* Favorite Button */}
-                          <IconButton
-                            onClick={(e) => toggleFavorite(e, car._id)}
-                            sx={{
-                              position: "absolute",
-                              top: 12,
-                              right: 12,
-                              bgcolor: "white",
-                              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                              "&:hover": {
-                                bgcolor: "white",
-                                transform: "scale(1.1)",
-                              },
-                              transition: "all 0.2s",
-                            }}
-                          >
-                            {favorites.has(car._id) ? (
-                              <Favorite sx={{ color: "#EF4444" }} />
-                            ) : (
-                              <FavoriteBorder sx={{ color: '#64748B' }} />
-                            )}
-                          </IconButton>
 
                           {/* Price Badge */}
                           <Chip

@@ -24,7 +24,7 @@ export const sendInquiry = async (req, res) => {
   try {
     const senderId = req.user.userId;
     const { carId } = req.params;
-    const { message } = req.body;
+    const { message, phone } = req.body;
 
     if (!message || message.trim().length === 0) {
       return res.status(400).json({ message: "Message is required" });
@@ -64,6 +64,7 @@ export const sendInquiry = async (req, res) => {
       sender: senderId,
       receiver: car.owner._id,
       message: message.trim(),
+      phone: phone?.trim() || null,
     });
 
     await inquiry.save();

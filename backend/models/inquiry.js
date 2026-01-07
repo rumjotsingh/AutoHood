@@ -24,6 +24,10 @@ const inquirySchema = new Schema(
       trim: true,
       maxlength: 1000,
     },
+    phone: {
+      type: String,
+      trim: true,
+    },
     status: {
       type: String,
       enum: ["pending", "read", "replied"],

@@ -44,7 +44,7 @@ const CarLoanCalculator = () => {
   useEffect(() => {
     const fetchCarPrice = async () => {
       try {
-        const response = await fetch(API_ENDPOINTS.CARS.DETAILS.replace(':id', id));
+        const response = await fetch(API_ENDPOINTS.CARS.DETAILS(id));
         const carData = await response.json();
         const onRoadPrice = carData.price + carData.price * 0.1 + carData.price * 0.01;
         setCarPrice(onRoadPrice);

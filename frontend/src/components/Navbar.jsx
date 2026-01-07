@@ -18,6 +18,7 @@ import {
   ListItemButton,
   Divider,
   Container,
+  Badge,
 } from "@mui/material";
 import {
   Menu as MenuIcon,
@@ -30,12 +31,17 @@ import {
   Home,
   Info,
   ContactMail,
+  Dashboard,
+  Favorite,
+  Email,
 } from "@mui/icons-material";
 import Search from "../pages/Search";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { logout as logoutAction } from '../redux/slices/authSlice';
+import { fetchUnreadCount } from '../redux/slices/inquiriesSlice';
+import { fetchFavorites } from '../redux/slices/favoritesSlice';
 
 function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -47,6 +53,8 @@ function Navbar() {
   
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const { unreadCount } = useAppSelector((state) => state.inquiries);
+  const { favoriteIds } = useAppSelector((state) => state.favorites);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -55,6 +63,14 @@ function Navbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Fetch unread count and favorites when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchUnreadCount());
+      dispatch(fetchFavorites());
+    }
+  }, [dispatch, isAuthenticated]);
 
   const handleLogout = () => {
     dispatch(logoutAction());
@@ -74,6 +90,24 @@ function Navbar() {
     { to: "/", label: "Home", icon: <Home /> },
     { to: "/about", label: "About", icon: <Info /> },
     { to: "/contact", label: "Contact", icon: <ContactMail /> },
+  ];
+
+  // Additional links for authenticated users
+  const authLinks = [
+    { to: "/dashboard", label: "Dashboard", icon: <Dashboard /> },
+    { to: "/my-listings", label: "My Listings", icon: <DirectionsCar /> },
+    { 
+      to: "/favorites", 
+      label: "Favorites", 
+      icon: <Favorite />,
+      badge: favoriteIds.length 
+    },
+    { 
+      to: "/inquiries", 
+      label: "Messages", 
+      icon: <Email />,
+      badge: unreadCount 
+    },
   ];
 
   // Mobile Drawer Content
@@ -178,6 +212,54 @@ function Navbar() {
         ))}
 
         <Divider sx={{ my: 2 }} />
+
+        {/* Auth-only links */}
+        {isAuthenticated && (
+          <>
+            {authLinks.map((link) => (
+              <ListItem key={link.to} disablePadding>
+                <ListItemButton
+                  component={NavLink}
+                  to={link.to}
+                  onClick={handleDrawerToggle}
+                  sx={{
+                    py: 1.5,
+                    px: 3,
+                    '&:hover': {
+                      bgcolor: '#F1F5F9',
+                    },
+                    '&.active': {
+                      bgcolor: '#FFF7ED',
+                      borderRight: '3px solid #F97316',
+                      '& .MuiListItemIcon-root': {
+                        color: '#F97316',
+                      },
+                      '& .MuiListItemText-primary': {
+                        color: '#F97316',
+                        fontWeight: 600,
+                      },
+                    },
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: 40, color: '#64748B' }}>
+                    {link.badge > 0 ? (
+                      <Badge badgeContent={link.badge} color="error">
+                        {link.icon}
+                      </Badge>
+                    ) : (
+                      link.icon
+                    )}
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary={link.label} 
+                    primaryTypographyProps={{ fontWeight: 500 }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            ))}
+            <Divider sx={{ my: 2 }} />
+          </>
+        )}
 
         {!isAuthenticated ? (
           <>
@@ -341,22 +423,24 @@ function Navbar() {
 
             {/* Desktop Navigation */}
             {!isMobile && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'nowrap' }}>
                 {navLinks.map((link) => (
                   <Button
                     key={link.to}
                     component={NavLink}
                     to={link.to}
+                    size="small"
                     sx={{
                       color: '#475569',
                       fontWeight: 500,
                       textTransform: 'none',
-                      fontSize: '0.95rem',
-                      px: 2,
-                      py: 1,
+                      fontSize: '0.85rem',
+                      px: 1.5,
+                      py: 0.75,
                       borderRadius: '10px',
                       transition: 'all 0.2s',
                       position: 'relative',
+                      minWidth: 'auto',
                       '&:hover': {
                         bgcolor: '#F1F5F9',
                         color: '#0F172A',
@@ -372,19 +456,49 @@ function Navbar() {
                   </Button>
                 ))}
 
+                {/* Auth-only nav links */}
+                {isAuthenticated && authLinks.map((link) => (
+                  <IconButton
+                    key={link.to}
+                    component={NavLink}
+                    to={link.to}
+                    sx={{
+                      color: '#475569',
+                      '&:hover': {
+                        bgcolor: '#F1F5F9',
+                        color: '#0F172A',
+                      },
+                      '&.active': {
+                        color: '#F97316',
+                        bgcolor: '#FFF7ED',
+                      },
+                    }}
+                  >
+                    {link.badge > 0 ? (
+                      <Badge badgeContent={link.badge} color="error" max={99}>
+                        {link.icon}
+                      </Badge>
+                    ) : (
+                      link.icon
+                    )}
+                  </IconButton>
+                ))}
+
                 {!isAuthenticated ? (
                   <>
                     <Button
                       component={NavLink}
                       to="/login"
+                      size="small"
                       sx={{
                         color: '#475569',
                         fontWeight: 500,
                         textTransform: 'none',
-                        fontSize: '0.95rem',
-                        px: 2,
-                        py: 1,
+                        fontSize: '0.85rem',
+                        px: 1.5,
+                        py: 0.75,
                         borderRadius: '10px',
+                        minWidth: 'auto',
                         '&:hover': {
                           bgcolor: '#F1F5F9',
                           color: '#0F172A',
@@ -397,16 +511,18 @@ function Navbar() {
                       component={NavLink}
                       to="/register"
                       variant="outlined"
+                      size="small"
                       sx={{
                         color: '#0F172A',
                         borderColor: '#0F172A',
                         fontWeight: 600,
                         textTransform: 'none',
-                        fontSize: '0.95rem',
-                        px: 2.5,
-                        py: 1,
+                        fontSize: '0.85rem',
+                        px: 2,
+                        py: 0.75,
                         borderRadius: '10px',
                         borderWidth: 2,
+                        minWidth: 'auto',
                         '&:hover': {
                           borderWidth: 2,
                           bgcolor: '#0F172A',
@@ -423,20 +539,21 @@ function Navbar() {
                       sx={{ 
                         display: 'flex', 
                         alignItems: 'center', 
-                        gap: 1.5, 
-                        px: 2,
+                        gap: 1, 
+                        px: 1.5,
                         py: 0.5,
                         borderRadius: '12px',
                         bgcolor: '#F8FAFC',
+                        maxWidth: 150,
                       }}
                     >
                       <Avatar
                         sx={{
-                          width: 36,
-                          height: 36,
+                          width: 32,
+                          height: 32,
                           bgcolor: '#0F172A',
                           fontWeight: 600,
-                          fontSize: '0.95rem',
+                          fontSize: '0.85rem',
                         }}
                       >
                         {user?.name?.charAt(0).toUpperCase() || "U"}
@@ -445,7 +562,11 @@ function Navbar() {
                         sx={{
                           color: '#0F172A',
                           fontWeight: 600,
-                          fontSize: '0.9rem',
+                          fontSize: '0.85rem',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          maxWidth: 80,
                         }}
                       >
                         {user?.name || "User"}
@@ -453,14 +574,16 @@ function Navbar() {
                     </Box>
                     <Button
                       onClick={handleLogout}
+                      size="small"
                       sx={{
                         color: '#EF4444',
                         fontWeight: 500,
                         textTransform: 'none',
-                        fontSize: '0.95rem',
-                        px: 2,
-                        py: 1,
+                        fontSize: '0.85rem',
+                        px: 1.5,
+                        py: 0.5,
                         borderRadius: '10px',
+                        minWidth: 'auto',
                         '&:hover': {
                           bgcolor: '#FEF2F2',
                         },
@@ -475,18 +598,21 @@ function Navbar() {
                   component={NavLink}
                   to="/add-car"
                   variant="contained"
-                  startIcon={<AddCircle />}
+                  startIcon={<AddCircle sx={{ fontSize: 18 }} />}
+                  size="small"
                   sx={{
-                    ml: 1,
+                    ml: 0.5,
                     background: 'linear-gradient(135deg, #F97316 0%, #FB923C 100%)',
                     color: 'white',
                     fontWeight: 600,
                     textTransform: 'none',
-                    fontSize: '0.95rem',
-                    px: 3,
-                    py: 1.2,
+                    fontSize: '0.85rem',
+                    px: 2,
+                    py: 1,
                     borderRadius: '12px',
                     boxShadow: '0 4px 14px rgba(249, 115, 22, 0.35)',
+                    whiteSpace: 'nowrap',
+                    minWidth: 'fit-content',
                     '&:hover': {
                       background: 'linear-gradient(135deg, #EA580C 0%, #F97316 100%)',
                       transform: 'translateY(-2px)',
@@ -494,7 +620,7 @@ function Navbar() {
                     },
                   }}
                 >
-                  Sell Your Car
+                  Sell Car
                 </Button>
               </Box>
             )}

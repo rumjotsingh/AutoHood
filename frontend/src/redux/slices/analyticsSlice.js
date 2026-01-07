@@ -1,23 +1,12 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-import { API_ENDPOINTS } from "../../config/api";
-
-// Get auth header helper
-const getAuthHeader = () => {
-  const token = localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
+import api from "../../config/axiosInstance";
 
 // Async thunks
 export const recordCarView = createAsyncThunk(
   "analytics/recordCarView",
   async (carId, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        API_ENDPOINTS.ANALYTICS.RECORD_VIEW(carId),
-        {},
-        { headers: getAuthHeader() }
-      );
+      const response = await api.post(`/v1/analytics/view/${carId}`);
       return response.data;
     } catch (error) {
       // Silently fail for view recording
@@ -30,10 +19,7 @@ export const fetchCarStats = createAsyncThunk(
   "analytics/fetchCarStats",
   async (carId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(
-        API_ENDPOINTS.ANALYTICS.CAR_STATS(carId),
-        { headers: getAuthHeader() }
-      );
+      const response = await api.get(`/v1/analytics/car/${carId}/stats`);
       return { carId, stats: response.data.stats };
     } catch (error) {
       return rejectWithValue(
@@ -47,9 +33,7 @@ export const fetchDashboard = createAsyncThunk(
   "analytics/fetchDashboard",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(API_ENDPOINTS.ANALYTICS.DASHBOARD, {
-        headers: getAuthHeader(),
-      });
+      const response = await api.get("/v1/analytics/dashboard");
       return response.data.dashboard;
     } catch (error) {
       return rejectWithValue(
@@ -63,9 +47,7 @@ export const fetchUserActivity = createAsyncThunk(
   "analytics/fetchUserActivity",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(API_ENDPOINTS.ANALYTICS.ACTIVITY, {
-        headers: getAuthHeader(),
-      });
+      const response = await api.get("/v1/analytics/activity");
       return response.data.activity;
     } catch (error) {
       return rejectWithValue(
@@ -79,9 +61,7 @@ export const fetchPlatformAnalytics = createAsyncThunk(
   "analytics/fetchPlatformAnalytics",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(API_ENDPOINTS.ANALYTICS.PLATFORM, {
-        headers: getAuthHeader(),
-      });
+      const response = await api.get("/v1/analytics/platform");
       return response.data.analytics;
     } catch (error) {
       return rejectWithValue(

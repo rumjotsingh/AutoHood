@@ -1,21 +1,12 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-import { API_ENDPOINTS } from "../../config/api";
-
-// Get auth header helper
-const getAuthHeader = () => {
-  const token = localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
+import api from "../../config/axiosInstance";
 
 // Async thunks
 export const fetchFavorites = createAsyncThunk(
   "favorites/fetchFavorites",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(API_ENDPOINTS.FAVORITES.GET_ALL, {
-        headers: getAuthHeader(),
-      });
+      const response = await api.get("/v1/favorites/my-favorites");
       return response.data.favorites;
     } catch (error) {
       return rejectWithValue(
@@ -29,11 +20,7 @@ export const addToFavorites = createAsyncThunk(
   "favorites/addToFavorites",
   async (carId, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        API_ENDPOINTS.FAVORITES.ADD(carId),
-        {},
-        { headers: getAuthHeader() }
-      );
+      const response = await api.post(`/v1/favorites/${carId}`);
       return response.data.favorite;
     } catch (error) {
       return rejectWithValue(
@@ -47,9 +34,7 @@ export const removeFromFavorites = createAsyncThunk(
   "favorites/removeFromFavorites",
   async (carId, { rejectWithValue }) => {
     try {
-      await axios.delete(API_ENDPOINTS.FAVORITES.REMOVE(carId), {
-        headers: getAuthHeader(),
-      });
+      await api.delete(`/v1/favorites/${carId}`);
       return carId;
     } catch (error) {
       return rejectWithValue(
@@ -63,9 +48,7 @@ export const checkFavorite = createAsyncThunk(
   "favorites/checkFavorite",
   async (carId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(API_ENDPOINTS.FAVORITES.CHECK(carId), {
-        headers: getAuthHeader(),
-      });
+      const response = await api.get(`/v1/favorites/check/${carId}`);
       return { carId, isFavorite: response.data.isFavorite };
     } catch (error) {
       return rejectWithValue(
@@ -104,8 +87,16 @@ const favoritesSlice = createSlice({
       })
       .addCase(fetchFavorites.fulfilled, (state, action) => {
         state.loading = false;
-        state.favorites = action.payload;
-        state.favoriteIds = action.payload.map((fav) => fav.car._id || fav.car);
+        state.favorites = action.payload || [];
+        state.favoriteIds = (action.payload || [])
+          .map((fav) => {
+            if (!fav) return null;
+            if (fav.car && fav.car._id) return fav.car._id;
+            if (fav.car) return fav.car;
+            if (fav._id) return fav._id;
+            return null;
+          })
+          .filter(Boolean);
       })
       .addCase(fetchFavorites.rejected, (state, action) => {
         state.loading = false;
@@ -118,8 +109,12 @@ const favoritesSlice = createSlice({
       })
       .addCase(addToFavorites.fulfilled, (state, action) => {
         state.checkingFavorite[action.meta.arg] = false;
-        state.favorites.push(action.payload);
-        state.favoriteIds.push(action.payload.car._id || action.payload.car);
+        if (action.payload) {
+          state.favorites.push(action.payload);
+          const carId =
+            action.payload.car?._id || action.payload.car || action.payload._id;
+          if (carId) state.favoriteIds.push(carId);
+        }
       })
       .addCase(addToFavorites.rejected, (state, action) => {
         state.checkingFavorite[action.meta.arg] = false;
@@ -132,9 +127,10 @@ const favoritesSlice = createSlice({
       })
       .addCase(removeFromFavorites.fulfilled, (state, action) => {
         state.checkingFavorite[action.meta.arg] = false;
-        state.favorites = state.favorites.filter(
-          (fav) => (fav.car._id || fav.car) !== action.payload
-        );
+        state.favorites = state.favorites.filter((fav) => {
+          const carId = fav?.car?._id || fav?.car || fav?._id;
+          return carId !== action.payload;
+        });
         state.favoriteIds = state.favoriteIds.filter(
           (id) => id !== action.payload
         );

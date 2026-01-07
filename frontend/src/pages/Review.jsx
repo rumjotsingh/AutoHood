@@ -32,7 +32,7 @@ const ReviewsForm = ({ refresh }) => {
           return;
         }
   
-        const response = await fetch(API_ENDPOINTS.REVIEWS.CREATE.replace(':id', id), {
+        const response = await fetch(API_ENDPOINTS.REVIEWS.CREATE(id), {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

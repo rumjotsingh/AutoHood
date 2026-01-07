@@ -13,7 +13,6 @@ export const GetAllCarsController = async (req, res) => {
       CarsModel.find({})
         .skip(skip)
         .limit(limit)
-        .select("model brand year price") // Return only required fields (add what you need)
         .populate({
           path: "owner",
           select: "name email", // Only needed fields
@@ -226,5 +225,31 @@ export const CarSearchController = async (req, res) => {
     res.status(200).json(results);
   } catch (err) {
     return res.status(500).json({ message: err.message });
+  }
+};
+
+// Get all cars listed by the logged-in user
+export const getMyListings = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const cars = await CarsModel.find({ owner: userId })
+      .sort({ createdAt: -1 })
+      .populate({
+        path: "reviews",
+        select: "rating",
+      })
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      cars,
+      count: cars.length,
+    });
+  } catch (err) {
+    console.error("Error fetching user listings:", err);
+    return res
+      .status(500)
+      .json({ message: "Failed to fetch your listings", error: err.message });
   }
 };

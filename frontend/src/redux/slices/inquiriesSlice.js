@@ -1,23 +1,15 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-import { API_ENDPOINTS } from "../../config/api";
-
-// Get auth header helper
-const getAuthHeader = () => {
-  const token = localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
+import api from "../../config/axiosInstance";
 
 // Async thunks
 export const sendInquiry = createAsyncThunk(
   "inquiries/sendInquiry",
   async ({ carId, message, phone }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        API_ENDPOINTS.INQUIRIES.SEND(carId),
-        { message, phone },
-        { headers: getAuthHeader() }
-      );
+      const response = await api.post(`/v1/inquiries/car/${carId}`, {
+        message,
+        phone,
+      });
       return response.data.inquiry;
     } catch (error) {
       return rejectWithValue(
@@ -31,9 +23,7 @@ export const fetchSentInquiries = createAsyncThunk(
   "inquiries/fetchSentInquiries",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(API_ENDPOINTS.INQUIRIES.SENT, {
-        headers: getAuthHeader(),
-      });
+      const response = await api.get("/v1/inquiries/sent");
       return response.data.inquiries;
     } catch (error) {
       return rejectWithValue(
@@ -47,9 +37,7 @@ export const fetchReceivedInquiries = createAsyncThunk(
   "inquiries/fetchReceivedInquiries",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(API_ENDPOINTS.INQUIRIES.RECEIVED, {
-        headers: getAuthHeader(),
-      });
+      const response = await api.get("/v1/inquiries/received");
       return response.data.inquiries;
     } catch (error) {
       return rejectWithValue(
@@ -63,11 +51,9 @@ export const replyToInquiry = createAsyncThunk(
   "inquiries/replyToInquiry",
   async ({ inquiryId, reply }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        API_ENDPOINTS.INQUIRIES.REPLY(inquiryId),
-        { reply },
-        { headers: getAuthHeader() }
-      );
+      const response = await api.post(`/v1/inquiries/reply/${inquiryId}`, {
+        reply,
+      });
       return response.data.inquiry;
     } catch (error) {
       return rejectWithValue(
@@ -81,11 +67,7 @@ export const markAsRead = createAsyncThunk(
   "inquiries/markAsRead",
   async (inquiryId, { rejectWithValue }) => {
     try {
-      const response = await axios.patch(
-        API_ENDPOINTS.INQUIRIES.MARK_READ(inquiryId),
-        {},
-        { headers: getAuthHeader() }
-      );
+      const response = await api.patch(`/v1/inquiries/read/${inquiryId}`);
       return response.data.inquiry;
     } catch (error) {
       return rejectWithValue(
@@ -99,9 +81,7 @@ export const fetchUnreadCount = createAsyncThunk(
   "inquiries/fetchUnreadCount",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(API_ENDPOINTS.INQUIRIES.UNREAD_COUNT, {
-        headers: getAuthHeader(),
-      });
+      const response = await api.get("/v1/inquiries/unread-count");
       return response.data.unreadCount;
     } catch (error) {
       return rejectWithValue(

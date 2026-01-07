@@ -33,8 +33,6 @@ import {
   
   Verified,
   Share,
-  FavoriteBorder,
-  Favorite,
   NavigateNext,
   Home,
   DirectionsCar,
@@ -51,6 +49,9 @@ import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { fetchCarDetails, deleteCar, clearCurrentCar } from '../redux/slices/carsSlice';
 import { API_ENDPOINTS } from '../config/api';
 import axios from 'axios';
+import FavoriteButton from "../components/FavoriteButton";
+import InquiryModal from "../components/InquiryModal";
+import { Message } from "@mui/icons-material";
 
 
 function CarsDetailed() {
@@ -58,8 +59,8 @@ function CarsDetailed() {
   const [refreshTrigger, setRefreshTrigger] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
+  const [inquiryModal, setInquiryModal] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
   const navigate = useNavigate();
   
   const dispatch = useAppDispatch();
@@ -89,7 +90,7 @@ function CarsDetailed() {
   const handleDeleteReview = async (reviewId) => {
     try {
       if (!token) return toast.error("You must be logged in to delete a review.");
-      const res = await fetch(API_ENDPOINTS.REVIEWS.DELETE.replace(':id', reviewId), {
+      const res = await fetch(API_ENDPOINTS.REVIEWS.DELETE(reviewId), {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -219,20 +220,7 @@ function CarsDetailed() {
                       gap: 1,
                     }}
                   >
-                    <IconButton
-                      onClick={() => setIsFavorite(!isFavorite)}
-                      sx={{
-                        bgcolor: 'white',
-                        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-                        '&:hover': { bgcolor: 'white' },
-                      }}
-                    >
-                      {isFavorite ? (
-                        <Favorite sx={{ color: '#EF4444' }} />
-                      ) : (
-                        <FavoriteBorder sx={{ color: '#64748B' }} />
-                      )}
-                    </IconButton>
+                    <FavoriteButton carId={id} size="medium" showTooltip={true} />
                     <IconButton
                       sx={{
                         bgcolor: 'white',
@@ -557,6 +545,31 @@ function CarsDetailed() {
                         }}
                       >
                         Buy Now
+                      </Button>
+
+                      {/* Contact Seller Button */}
+                      <Button
+                        variant="contained"
+                        size="large"
+                        fullWidth
+                        startIcon={<Message />}
+                        onClick={() => setInquiryModal(true)}
+                        sx={{
+                          py: 1.75,
+                          borderRadius: '14px',
+                          background: 'linear-gradient(135deg, #10B981 0%, #34D399 100%)',
+                          fontWeight: 600,
+                          fontSize: '1rem',
+                          textTransform: 'none',
+                          boxShadow: '0 8px 30px rgba(16, 185, 129, 0.4)',
+                          '&:hover': {
+                            background: 'linear-gradient(135deg, #059669 0%, #10B981 100%)',
+                            transform: 'translateY(-2px)',
+                            boxShadow: '0 12px 40px rgba(16, 185, 129, 0.5)',
+                          },
+                        }}
+                      >
+                        Contact Seller
                       </Button>
 
                       <Grid container spacing={2}>
@@ -1060,6 +1073,13 @@ function CarsDetailed() {
           </Box>
         </Box>
       </Container>
+
+      {/* Inquiry Modal */}
+      <InquiryModal
+        open={inquiryModal}
+        onClose={() => setInquiryModal(false)}
+        car={details}
+      />
       
       <Footer />
     </Box>
