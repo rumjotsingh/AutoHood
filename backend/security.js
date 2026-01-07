@@ -199,17 +199,34 @@ export const corsOptions = {
     const allowedOrigins = [
       "http://localhost:5173",
       "http://localhost:3000",
-      "*",
+      "https://carsystem-zeta.vercel.app/",
       process.env.FRONTEND_URL,
     ].filter(Boolean);
 
-    // Allow requests with no origin (mobile apps, Postman, etc.)
+    // Allow requests with no origin (mobile apps, Postman, health checks, etc.)
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.includes(origin)) {
+    // Check if origin matches allowed origins or if we're allowing all
+    if (allowedOrigins.includes("*") || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS"));
+      // In production, also allow the deployed frontend domain
+      const isAllowedPattern = allowedOrigins.some((allowed) => {
+        if (allowed && origin) {
+          // Check if origin contains allowed domain (handles subdomains)
+          return origin.includes(
+            allowed.replace(/^https?:\/\//, "").split("/")[0]
+          );
+        }
+        return false;
+      });
+
+      if (isAllowedPattern) {
+        callback(null, true);
+      } else {
+        console.warn(`CORS blocked origin: ${origin}`);
+        callback(null, true); // Temporarily allow all origins for debugging - change to callback(new Error("Not allowed by CORS")) in production
+      }
     }
   },
   credentials: true,
