@@ -1,6 +1,5 @@
 // API Base URL Configuration
 const BASE_URL = "https://carsystem-backend.onrender.com/api";
-// const BASE_URL = "http://localhost:8080/api";
 
 // API Endpoints
 export const API_ENDPOINTS = {
