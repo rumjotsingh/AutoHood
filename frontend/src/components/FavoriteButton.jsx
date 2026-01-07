@@ -2,6 +2,7 @@ import { IconButton, Tooltip, CircularProgress } from "@mui/material";
 import { Favorite, FavoriteBorder } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
 import {
   addToFavorites,
   removeFromFavorites,
@@ -78,6 +79,12 @@ const FavoriteButton = ({ carId, size = "medium", showTooltip = true }) => {
       {button}
     </Tooltip>
   );
+};
+
+FavoriteButton.propTypes = {
+  carId: PropTypes.string.isRequired,
+  size: PropTypes.oneOf(["small", "medium", "large"]),
+  showTooltip: PropTypes.bool,
 };
 
 export default FavoriteButton;

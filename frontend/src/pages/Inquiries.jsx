@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import PropTypes from "prop-types";
 import {
   Box,
   Container,
@@ -46,6 +47,12 @@ const TabPanel = ({ children, value, index }) => (
     {value === index && children}
   </Box>
 );
+
+TabPanel.propTypes = {
+  children: PropTypes.node,
+  value: PropTypes.number.isRequired,
+  index: PropTypes.number.isRequired,
+};
 
 const InquiryCard = ({ inquiry, type, onReply, onMarkRead, onViewCar }) => {
   const isReceived = type === "received";
@@ -202,6 +209,39 @@ const InquiryCard = ({ inquiry, type, onReply, onMarkRead, onViewCar }) => {
       </Box>
     </Paper>
   );
+};
+
+InquiryCard.propTypes = {
+  inquiry: PropTypes.shape({
+    _id: PropTypes.string,
+    status: PropTypes.string,
+    message: PropTypes.string,
+    phone: PropTypes.string,
+    reply: PropTypes.string,
+    repliedAt: PropTypes.string,
+    createdAt: PropTypes.string,
+    sender: PropTypes.shape({
+      name: PropTypes.string,
+    }),
+    receiver: PropTypes.shape({
+      name: PropTypes.string,
+    }),
+    car: PropTypes.shape({
+      _id: PropTypes.string,
+      company: PropTypes.string,
+      price: PropTypes.number,
+      image: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.shape({
+          url: PropTypes.string,
+        }),
+      ]),
+    }),
+  }).isRequired,
+  type: PropTypes.oneOf(["sent", "received"]).isRequired,
+  onReply: PropTypes.func.isRequired,
+  onMarkRead: PropTypes.func.isRequired,
+  onViewCar: PropTypes.func.isRequired,
 };
 
 const Inquiries = () => {

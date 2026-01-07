@@ -1,6 +1,7 @@
 import { IconButton, Tooltip } from "@mui/material";
 import { CompareArrows, Check } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
+import PropTypes from "prop-types";
 import {
   addToComparison,
   removeFromComparison,
@@ -69,6 +70,12 @@ const CompareButton = ({ carId, size = "medium", showTooltip = true }) => {
       <span>{button}</span>
     </Tooltip>
   );
+};
+
+CompareButton.propTypes = {
+  carId: PropTypes.string.isRequired,
+  size: PropTypes.oneOf(["small", "medium", "large"]),
+  showTooltip: PropTypes.bool,
 };
 
 export default CompareButton;

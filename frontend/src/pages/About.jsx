@@ -1,34 +1,9 @@
-import { useState, useEffect } from "react";
-import { 
-  Container, 
-  Grid, 
-  Box, 
-  Typography, 
-  Button, 
-  Paper,
-  Chip,
-  Stack,
-  Avatar,
-  Card,
-  CardContent,
-} from "@mui/material";
-import {
-  DirectionsCar,
-  VerifiedUser,
-  Groups,
-  TrendingUp,
-  Security,
-  SupportAgent,
-  Handshake,
-  Speed,
-  ArrowForward,
-  CheckCircle,
-  LinkedIn,
-  Twitter,
-} from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
+import { Container, Grid, Box, Typography, Button, Paper, Chip, Card, CardContent, Stack, Avatar } from "@mui/material";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
+import { DirectionsCar, Handshake, Security, SupportAgent, VerifiedUser, Group, TrendingUp, Speed, ArrowForward, LinkedIn, Twitter, CheckCircle } from "@mui/icons-material";
 
 export default function About() {
   const [, setMounted] = useState(false);
@@ -41,7 +16,7 @@ export default function About() {
   // Company Stats
   const stats = [
     { value: "10,000+", label: "Cars Sold", icon: <DirectionsCar /> },
-    { value: "50,000+", label: "Happy Customers", icon: <Groups /> },
+    { value: "50,000+", label: "Happy Customers", icon: <Group /> },
     { value: "500+", label: "Verified Dealers", icon: <VerifiedUser /> },
     { value: "98%", label: "Satisfaction Rate", icon: <TrendingUp /> },
   ];

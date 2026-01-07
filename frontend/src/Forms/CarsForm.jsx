@@ -19,7 +19,6 @@ import {
   Stack,
   Fade,
   Breadcrumbs,
- 
 } from "@mui/material";
 import {
   CloudUpload,
@@ -28,7 +27,6 @@ import {
   Description,
   ColorLens,
   LocalGasStation,
- 
   CheckCircle,
   Home,
   NavigateNext,
@@ -50,7 +48,6 @@ function CarsForm() {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
-  // const [activeStep, setActiveStep] = useState(0);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];

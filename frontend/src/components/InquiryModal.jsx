@@ -1,4 +1,5 @@
 import { useState } from "react";
+import PropTypes from "prop-types";
 import {
   Dialog,
   DialogContent,
@@ -184,6 +185,23 @@ const InquiryModal = ({ open, onClose, car }) => {
       </form>
     </Dialog>
   );
+};
+
+InquiryModal.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  car: PropTypes.shape({
+    _id: PropTypes.string,
+    company: PropTypes.string,
+    carName: PropTypes.string,
+    price: PropTypes.number,
+    image: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.shape({
+        url: PropTypes.string,
+      }),
+    ]),
+  }),
 };
 
 export default InquiryModal;

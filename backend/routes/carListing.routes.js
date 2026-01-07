@@ -33,5 +33,4 @@ router.put(
   authenticate,
   EditCarController
 );
-
 export default router;
