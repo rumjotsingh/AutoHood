@@ -12,10 +12,19 @@ export const GetAllCarsController = async (req, res) => {
       CarsModel.find({})
         .skip(skip)
         .limit(limit)
-        
-        .populate({ path: "owner", select: "name email", options: { lean: true } })
-        .populate({ path: "reviews", select: "rating comment", populate: { path: "author", select: "name" }, options: { lean: true } })
-        .lean()
+
+        .populate({
+          path: "owner",
+          select: "name email",
+          options: { lean: true },
+        })
+        .populate({
+          path: "reviews",
+          select: "rating comment",
+          populate: { path: "author", select: "name" },
+          options: { lean: true },
+        })
+        .lean(),
     ]);
 
     res.status(200).json({
@@ -74,7 +83,6 @@ export const createCarListing = async (req, res) => {
 
     await newCar.save();
     res.status(201).json({ message: "Car created successfully", newCar });
-
   } catch (error) {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
@@ -88,17 +96,23 @@ export const deleteCarController = async (req, res) => {
 
     const car = await CarsModel.findById(carId);
     if (!car) return res.status(404).json({ message: "Car not found" });
-    if (car.owner.toString() !== userId.toString()) return res.status(403).json({ message: "Not authorized to delete this car" });
+    if (car.owner.toString() !== userId.toString())
+      return res
+        .status(403)
+        .json({ message: "Not authorized to delete this car" });
 
     // Remove local image file if exists (async)
     if (car.image?.url && car.image?.filename) {
       const imagePath = path.join("uploads", car.image.filename);
-      try { await fs.unlink(imagePath); } catch (err) { /* Ignore if not found */ }
+      try {
+        await fs.unlink(imagePath);
+      } catch (err) {
+        /* Ignore if not found */
+      }
     }
 
     await CarsModel.findByIdAndDelete(carId);
     res.status(200).json({ message: "Car deleted successfully" });
-
   } catch (error) {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
@@ -112,7 +126,10 @@ export const EditCarController = async (req, res) => {
 
     const car = await CarsModel.findById(carId);
     if (!car) return res.status(404).json({ message: "Car not found" });
-    if (car.owner.toString() !== userId.toString()) return res.status(403).json({ message: "Not authorized to edit this car" });
+    if (car.owner.toString() !== userId.toString())
+      return res
+        .status(403)
+        .json({ message: "Not authorized to edit this car" });
 
     const { engine, company, description, color, mileage, price } = req.body;
     const updateData = { engine, company, description, color, mileage, price };
@@ -121,14 +138,22 @@ export const EditCarController = async (req, res) => {
       // Async remove old image
       if (car.image?.filename) {
         const oldPath = path.join("uploads", car.image.filename);
-        try { await fs.unlink(oldPath); } catch (err) { /* ignore error */ }
+        try {
+          await fs.unlink(oldPath);
+        } catch (err) {
+          /* ignore error */
+        }
       }
       updateData.image = { url: req.file.path, filename: req.file.filename };
     }
 
-    const updatedCar = await CarsModel.findByIdAndUpdate(carId, updateData, { new: true, runValidators: true });
-    res.status(200).json({ message: "Car updated successfully", data: updatedCar });
-
+    const updatedCar = await CarsModel.findByIdAndUpdate(carId, updateData, {
+      new: true,
+      runValidators: true,
+    });
+    res
+      .status(200)
+      .json({ message: "Car updated successfully", data: updatedCar });
   } catch (error) {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
@@ -138,18 +163,37 @@ export const EditCarController = async (req, res) => {
 export const CarSearchController = async (req, res) => {
   try {
     const { query } = req.query;
-    if (!query?.trim()) return res.status(400).json({ message: "Search query is required" });
+    if (!query?.trim())
+      return res.status(400).json({ message: "Search query is required" });
 
     const results = await CarsModel.find({
       $or: [
         { company: new RegExp(query, "i") },
         { color: new RegExp(query, "i") },
         { engine: new RegExp(query, "i") },
-      ]
+      ],
     }).lean();
 
     res.status(200).json({ results });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
 
+// GET My Listings
+export const getMyListings = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const listings = await CarsModel.find({ owner: userId })
+      .populate({
+        path: "reviews",
+        select: "rating comment",
+        options: { lean: true },
+      })
+      .lean();
+
+    res.status(200).json({ listings });
   } catch (error) {
     res.status(500).json({ message: "Server Error", error: error.message });
   }

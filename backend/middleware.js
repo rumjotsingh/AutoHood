@@ -17,10 +17,6 @@ export const upload = multer({
 });
 export const authenticate = (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1];
-<<<<<<< HEAD
-
-=======
->>>>>>> 651ad64aded6acf0067968c14ca6558255c72178
   if (!token) {
     return res
       .status(403)
