@@ -7,8 +7,7 @@ import {
   Container, 
   Stack,
   Button,
-  TextField,
-  InputAdornment,
+
 } from "@mui/material";
 import { 
   Facebook, 
@@ -20,7 +19,7 @@ import {
   Email, 
   Phone, 
   LocationOn,
-  Send,
+
   Apple,
   Android,
   
@@ -88,7 +87,7 @@ function Footer() {
 
       <Container maxWidth="lg">
         {/* Newsletter Section */}
-        <Box
+        {/* <Box
           sx={{
             p: { xs: 3, md: 4 },
             mb: 6,
@@ -166,7 +165,7 @@ function Footer() {
               <Send sx={{ fontSize: 20 }} />
             </Button>
           </Box>
-        </Box>
+        </Box> */}
 
         {/* Main Footer Content */}
         <Grid container spacing={4}>
@@ -188,7 +187,7 @@ function Footer() {
                 >
                   <DirectionsCar sx={{ color: 'white', fontSize: 28 }} />
                 </Box>
-                <Typography variant="h5" fontWeight={800} letterSpacing="-0.02em">
+                <Typography  sx={{ color: 'white', fontSize: 28 }} variant="h5" fontWeight={800} letterSpacing="-0.02em">
                   AutoHood
                 </Typography>
               </Box>

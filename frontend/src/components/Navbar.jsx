@@ -18,7 +18,7 @@ import {
   ListItemButton,
   Divider,
   Container,
-  Badge,
+  
 } from "@mui/material";
 import {
   Menu as MenuIcon,
@@ -28,12 +28,11 @@ import {
   Login,
   PersonAdd,
   AddCircle,
-  Home,
-  Info,
-  ContactMail,
-  Dashboard,
   Favorite,
-  Email,
+  
+
+  
+ 
 } from "@mui/icons-material";
 import Search from "../pages/Search";
 import { toast } from "react-toastify";
@@ -53,8 +52,8 @@ function Navbar() {
   
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
-  const { unreadCount } = useAppSelector((state) => state.inquiries);
-  const { favoriteIds } = useAppSelector((state) => state.favorites);
+  // const { unreadCount } = useAppSelector((state) => state.inquiries);
+  // const { favoriteIds } = useAppSelector((state) => state.favorites);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -85,31 +84,7 @@ function Navbar() {
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
-
-  const navLinks = [
-    { to: "/", label: "Home", icon: <Home /> },
-    { to: "/about", label: "About", icon: <Info /> },
-    { to: "/contact", label: "Contact", icon: <ContactMail /> },
-  ];
-
-  // Additional links for authenticated users
-  const authLinks = [
-    { to: "/dashboard", label: "Dashboard", icon: <Dashboard /> },
-    { to: "/my-listings", label: "My Listings", icon: <DirectionsCar /> },
-    { 
-      to: "/favorites", 
-      label: "Favorites", 
-      icon: <Favorite />,
-      badge: favoriteIds.length 
-    },
-    { 
-      to: "/inquiries", 
-      label: "Messages", 
-      icon: <Email />,
-      badge: unreadCount 
-    },
-  ];
-
+ 
   // Mobile Drawer Content
   const drawer = (
     <Box sx={{ width: 280, height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -126,15 +101,9 @@ function Navbar() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <Box
             sx={{
-              width: 40,
-              height: 40,
-              borderRadius: '12px',
               background: 'linear-gradient(135deg, #F97316 0%, #FB923C 100%)',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+          }}>
             <DirectionsCar sx={{ color: 'white', fontSize: 24 }} />
           </Box>
           <Typography variant="h6" sx={{ color: 'white', fontWeight: 700 }}>
@@ -174,49 +143,15 @@ function Navbar() {
       )}
 
       {/* Navigation Links */}
-      <List sx={{ flex: 1, py: 2 }}>
-        {navLinks.map((link) => (
-          <ListItem key={link.to} disablePadding>
-            <ListItemButton
-              component={NavLink}
-              to={link.to}
-              onClick={handleDrawerToggle}
-              sx={{
-                py: 1.5,
-                px: 3,
-                '&:hover': {
-                  bgcolor: '#F1F5F9',
-                },
-                '&.active': {
-                  bgcolor: '#FFF7ED',
-                  borderRight: '3px solid #F97316',
-                  '& .MuiListItemIcon-root': {
-                    color: '#F97316',
-                  },
-                  '& .MuiListItemText-primary': {
-                    color: '#F97316',
-                    fontWeight: 600,
-                  },
-                },
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40, color: '#64748B' }}>
-                {link.icon}
-              </ListItemIcon>
-              <ListItemText 
-                primary={link.label} 
-                primaryTypographyProps={{ fontWeight: 500 }}
-              />
-            </ListItemButton>
-          </ListItem>
-        ))}
+       <List sx={{ flex: 1, py: 2 }}>
+      
 
         <Divider sx={{ my: 2 }} />
 
         {/* Auth-only links */}
         {isAuthenticated && (
           <>
-            {authLinks.map((link) => (
+            {/* {authLinks.map((link) => (
               <ListItem key={link.to} disablePadding>
                 <ListItemButton
                   component={NavLink}
@@ -256,7 +191,7 @@ function Navbar() {
                   />
                 </ListItemButton>
               </ListItem>
-            ))}
+            ))} */}
             <Divider sx={{ my: 2 }} />
           </>
         )}
@@ -310,35 +245,10 @@ function Navbar() {
             </ListItemButton>
           </ListItem>
         )}
-      </List>
+      </List> 
 
       {/* Add Car CTA */}
-      <Box sx={{ p: 3, borderTop: '1px solid #E2E8F0' }}>
-        <Button
-          component={NavLink}
-          to="/add-car"
-          onClick={handleDrawerToggle}
-          fullWidth
-          variant="contained"
-          startIcon={<AddCircle />}
-          sx={{
-            py: 1.5,
-            background: 'linear-gradient(135deg, #F97316 0%, #FB923C 100%)',
-            color: 'white',
-            fontWeight: 600,
-            borderRadius: '12px',
-            textTransform: 'none',
-            fontSize: '1rem',
-            boxShadow: '0 4px 14px rgba(249, 115, 22, 0.4)',
-            '&:hover': {
-              background: 'linear-gradient(135deg, #EA580C 0%, #F97316 100%)',
-              boxShadow: '0 6px 20px rgba(249, 115, 22, 0.5)',
-            },
-          }}
-        >
-          Sell Your Car
-        </Button>
-      </Box>
+     
     </Box>
   );
 
@@ -423,68 +333,67 @@ function Navbar() {
 
             {/* Desktop Navigation */}
             {!isMobile && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'nowrap' }}>
-                {navLinks.map((link) => (
-                  <Button
-                    key={link.to}
-                    component={NavLink}
-                    to={link.to}
-                    size="small"
-                    sx={{
-                      color: '#475569',
-                      fontWeight: 500,
-                      textTransform: 'none',
-                      fontSize: '0.85rem',
-                      px: 1.5,
-                      py: 0.75,
-                      borderRadius: '10px',
-                      transition: 'all 0.2s',
-                      position: 'relative',
-                      minWidth: 'auto',
-                      '&:hover': {
-                        bgcolor: '#F1F5F9',
-                        color: '#0F172A',
-                      },
-                      '&.active': {
-                        color: '#F97316',
-                        bgcolor: '#FFF7ED',
-                        fontWeight: 600,
-                      },
-                    }}
-                  >
-                    {link.label}
-                  </Button>
-                ))}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'nowrap' }}>
+                {/* Main nav links */}
+               
 
-                {/* Auth-only nav links */}
-                {isAuthenticated && authLinks.map((link) => (
-                  <IconButton
-                    key={link.to}
-                    component={NavLink}
-                    to={link.to}
-                    sx={{
-                      color: '#475569',
-                      '&:hover': {
-                        bgcolor: '#F1F5F9',
-                        color: '#0F172A',
-                      },
-                      '&.active': {
-                        color: '#F97316',
-                        bgcolor: '#FFF7ED',
-                      },
-                    }}
-                  >
-                    {link.badge > 0 ? (
-                      <Badge badgeContent={link.badge} color="error" max={99}>
-                        {link.icon}
-                      </Badge>
-                    ) : (
-                      link.icon
-                    )}
-                  </IconButton>
-                ))}
+                {/* Auth icons */}
+                {isAuthenticated && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <IconButton
+                      component={NavLink}
+                      to="/favorites"
+                      sx={{
+                        color: '#475569',
+                        bgcolor: 'transparent',
+                        borderRadius: '10px',
+                        position: 'relative',
+                        '&:hover': {
+                          bgcolor: '#F1F5F9',
+                          color: '#0F172A',
+                        },
+                        '&.active': {
+                          color: '#F97316',
+                          bgcolor: '#FFF7ED',
+                        },
+                      }}
+                    >
+                      <Favorite sx={{ fontSize: 24 }} />
+                    </IconButton>
+                  </Box>
+                )}
 
-                {!isAuthenticated ? (
+                {/* Profile & Logout */}
+                {isAuthenticated ? (
+                  <>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 0.5, borderRadius: '999px', bgcolor: '#F8FAFC', boxShadow: '0 2px 8px rgba(15,23,42,0.04)' }}>
+                      <Avatar sx={{ width: 32, height: 32, bgcolor: '#0F172A', fontWeight: 600, fontSize: '1rem' }}>
+                        {user?.name?.charAt(0).toUpperCase() || 'U'}
+                      </Avatar>
+                      <Typography sx={{ color: '#0F172A', fontWeight: 600, fontSize: '1rem', ml: 0.5 }}>{user?.name || 'User'}</Typography>
+                    </Box>
+                    <Button
+                      onClick={handleLogout}
+                      size="small"
+                      sx={{
+                        color: '#EF4444',
+                        fontWeight: 500,
+                        textTransform: 'none',
+                        fontSize: '1rem',
+                        px: 1.5,
+                        py: 0.5,
+                        borderRadius: '10px',
+                        minWidth: 'auto',
+                        ml: 1,
+                        '&:hover': {
+                          bgcolor: '#FEF2F2',
+                        },
+                      }}
+                    >
+                      Logout
+                    </Button>
+                  </>
+                ) : (
                   <>
                     <Button
                       component={NavLink}
@@ -494,9 +403,9 @@ function Navbar() {
                         color: '#475569',
                         fontWeight: 500,
                         textTransform: 'none',
-                        fontSize: '0.85rem',
-                        px: 1.5,
-                        py: 0.75,
+                        fontSize: '1rem',
+                        px: 2,
+                        py: 1,
                         borderRadius: '10px',
                         minWidth: 'auto',
                         '&:hover': {
@@ -517,9 +426,9 @@ function Navbar() {
                         borderColor: '#0F172A',
                         fontWeight: 600,
                         textTransform: 'none',
-                        fontSize: '0.85rem',
+                        fontSize: '1rem',
                         px: 2,
-                        py: 0.75,
+                        py: 1,
                         borderRadius: '10px',
                         borderWidth: 2,
                         minWidth: 'auto',
@@ -533,83 +442,25 @@ function Navbar() {
                       Register
                     </Button>
                   </>
-                ) : (
-                  <>
-                    <Box 
-                      sx={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: 1, 
-                        px: 1.5,
-                        py: 0.5,
-                        borderRadius: '12px',
-                        bgcolor: '#F8FAFC',
-                        maxWidth: 150,
-                      }}
-                    >
-                      <Avatar
-                        sx={{
-                          width: 32,
-                          height: 32,
-                          bgcolor: '#0F172A',
-                          fontWeight: 600,
-                          fontSize: '0.85rem',
-                        }}
-                      >
-                        {user?.name?.charAt(0).toUpperCase() || "U"}
-                      </Avatar>
-                      <Typography
-                        sx={{
-                          color: '#0F172A',
-                          fontWeight: 600,
-                          fontSize: '0.85rem',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                          maxWidth: 80,
-                        }}
-                      >
-                        {user?.name || "User"}
-                      </Typography>
-                    </Box>
-                    <Button
-                      onClick={handleLogout}
-                      size="small"
-                      sx={{
-                        color: '#EF4444',
-                        fontWeight: 500,
-                        textTransform: 'none',
-                        fontSize: '0.85rem',
-                        px: 1.5,
-                        py: 0.5,
-                        borderRadius: '10px',
-                        minWidth: 'auto',
-                        '&:hover': {
-                          bgcolor: '#FEF2F2',
-                        },
-                      }}
-                    >
-                      Logout
-                    </Button>
-                  </>
                 )}
 
+                {/* Sell Car CTA */}
                 <Button
                   component={NavLink}
                   to="/add-car"
                   variant="contained"
-                  startIcon={<AddCircle sx={{ fontSize: 18 }} />}
+                  startIcon={<AddCircle sx={{ fontSize: 20 }} />}
                   size="small"
                   sx={{
-                    ml: 0.5,
+                    ml: 1.5,
                     background: 'linear-gradient(135deg, #F97316 0%, #FB923C 100%)',
                     color: 'white',
-                    fontWeight: 600,
+                    fontWeight: 700,
                     textTransform: 'none',
-                    fontSize: '0.85rem',
-                    px: 2,
-                    py: 1,
-                    borderRadius: '12px',
+                    fontSize: '1rem',
+                    px: 2.5,
+                    py: 1.2,
+                    borderRadius: '14px',
                     boxShadow: '0 4px 14px rgba(249, 115, 22, 0.35)',
                     whiteSpace: 'nowrap',
                     minWidth: 'fit-content',
