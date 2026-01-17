@@ -70,7 +70,7 @@ const ComparisonBar = () => {
           {/* Left: Title and count */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <CompareArrows sx={{ color: "#F97316" }} />
-            <Typography variant="subtitle1" fontWeight={600}>
+          <Typography sx={{ color: "white" }} variant="subtitle1" fontWeight={600}>
               Compare
             </Typography>
             <Chip

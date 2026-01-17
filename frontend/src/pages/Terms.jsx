@@ -39,7 +39,7 @@ function Terms() {
           <Box sx={{ width: 72, height: 72, borderRadius: "20px", background: "linear-gradient(135deg, #F97316 0%, #FB923C 100%)", display: "inline-flex", alignItems: "center", justifyContent: "center", mb: 3 }}>
             <Gavel sx={{ fontSize: 36, color: "white" }} />
           </Box>
-          <Typography variant="h3" fontWeight={800}>Terms of Use</Typography>
+          <Typography sx={{ color: "white" }} variant="h3" fontWeight={800}>Terms of Use</Typography>
           <Typography variant="body1" sx={{ color: "#94A3B8", maxWidth: 700, mx: "auto", mt: 2 }}>
             These terms govern your access to and use of AutoHood. By using our services you agree to these terms.
           </Typography>

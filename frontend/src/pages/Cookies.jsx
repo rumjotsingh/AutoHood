@@ -33,7 +33,7 @@ function Cookies() {
           <Box sx={{ width: 72, height: 72, borderRadius: "20px", background: "linear-gradient(135deg, #F97316 0%, #FB923C 100%)", display: "inline-flex", alignItems: "center", justifyContent: "center", mb: 3 }}>
             <Cookie sx={{ fontSize: 36, color: "white" }} />
           </Box>
-          <Typography variant="h3" fontWeight={800}>Cookie Policy</Typography>
+          <Typography sx={{ color: "white" }} variant="h3" fontWeight={800}>Cookie Policy</Typography>
           <Typography variant="body1" sx={{ color: "#94A3B8", maxWidth: 700, mx: "auto", mt: 2 }}>
             We use cookies to improve site functionality, analytics, and advertising. This page explains how we use cookies.
           </Typography>

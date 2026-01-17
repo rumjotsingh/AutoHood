@@ -51,7 +51,7 @@ import { API_ENDPOINTS } from '../config/api';
 import axios from 'axios';
 import FavoriteButton from "../components/FavoriteButton";
 import InquiryModal from "../components/InquiryModal";
-import { Message, CircularProgress } from "@mui/icons-material";
+import { Message } from "@mui/icons-material";
 
 
 function CarsDetailed() {
@@ -67,7 +67,9 @@ function CarsDetailed() {
   
   const dispatch = useAppDispatch();
   const { currentCar: details } = useAppSelector((state) => state.cars);
-  const { token } = useAppSelector((state) => state.auth);
+  const { token, user } = useAppSelector((state) => state.auth);
+
+  const isOwner = user && details?.owner && String(details.owner) === String(user.userId);
 
   useEffect(() => {
     setMounted(true);
@@ -634,52 +636,54 @@ function CarsDetailed() {
 
                       <Divider sx={{ my: 1 }} />
 
-                      <Grid container spacing={2}>
-                        <Grid item xs={6}>
-                          <Button
-                            variant="outlined"
-                            fullWidth
-                            startIcon={<EditIcon />}
-                            onClick={handleCarEdit}
-                            sx={{
-                              py: 1.5,
-                              borderRadius: '12px',
-                              borderColor: '#3B82F6',
-                              color: '#3B82F6',
-                              fontWeight: 600,
-                              textTransform: 'none',
-                              '&:hover': {
+                      {isOwner && (
+                        <Grid container spacing={2}>
+                          <Grid item xs={6}>
+                            <Button
+                              variant="outlined"
+                              fullWidth
+                              startIcon={<EditIcon />}
+                              onClick={handleCarEdit}
+                              sx={{
+                                py: 1.5,
+                                borderRadius: '12px',
                                 borderColor: '#3B82F6',
-                                bgcolor: '#EFF6FF',
-                              },
-                            }}
-                          >
-                            Edit
-                          </Button>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Button
-                            variant="outlined"
-                            fullWidth
-                            startIcon={<DeleteIcon />}
-                            onClick={() => setDeleteModal(true)}
-                            sx={{
-                              py: 1.5,
-                              borderRadius: '12px',
-                              borderColor: '#EF4444',
-                              color: '#EF4444',
-                              fontWeight: 600,
-                              textTransform: 'none',
-                              '&:hover': {
+                                color: '#3B82F6',
+                                fontWeight: 600,
+                                textTransform: 'none',
+                                '&:hover': {
+                                  borderColor: '#3B82F6',
+                                  bgcolor: '#EFF6FF',
+                                },
+                              }}
+                            >
+                              Edit
+                            </Button>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Button
+                              variant="outlined"
+                              fullWidth
+                              startIcon={<DeleteIcon />}
+                              onClick={() => setDeleteModal(true)}
+                              sx={{
+                                py: 1.5,
+                                borderRadius: '12px',
                                 borderColor: '#EF4444',
-                                bgcolor: '#FEF2F2',
-                              },
-                            }}
-                          >
-                            Delete
-                          </Button>
+                                color: '#EF4444',
+                                fontWeight: 600,
+                                textTransform: 'none',
+                                '&:hover': {
+                                  borderColor: '#EF4444',
+                                  bgcolor: '#FEF2F2',
+                                },
+                              }}
+                            >
+                              Delete
+                            </Button>
+                          </Grid>
                         </Grid>
-                      </Grid>
+                      )}
                     </Stack>
                   ) : (
                     <Paper
