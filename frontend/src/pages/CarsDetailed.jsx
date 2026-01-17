@@ -831,10 +831,14 @@ function CarsDetailed() {
                       color: 'white',
                     }}
                   >
-                    <Typography variant="h6" fontWeight={600}>
+                    <Typography sx={{
+                      color: 'white',
+                  }}  variant="h6" fontWeight={600}>
                       Total On-Road Price
                     </Typography>
-                    <Typography variant="h6" fontWeight={700}>
+                    <Typography sx={{
+                      color: 'white',
+                  }}  variant="h6" fontWeight={700}>
                       ₹{(details.price * 1.11).toLocaleString("en-IN")}
                     </Typography>
                   </Box>

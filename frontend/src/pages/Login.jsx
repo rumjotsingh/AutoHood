@@ -6,7 +6,6 @@ import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import axios from "axios";
 import {
   Box,
   TextField,
@@ -33,7 +32,7 @@ import {
   Verified,
 } from "@mui/icons-material";
 import { useAppSelector, useAppDispatch } from '../redux/hooks';
-import { googleLogin } from '../redux/actions/authActions';
+import { loginUser, googleLogin } from '../redux/actions/authActions';
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -65,19 +64,24 @@ function Login() {
   const handleLogin = async (data) => {
     try {
       setLoading(true);
-      const res = await axios.post("https://carsystem-backend.onrender.com/api/v1/auth/login", {
+      const result = await dispatch(loginUser({
         email: data.email,
         password: data.password,
-      });
-      if (res.data.message) {
-        localStorage.setItem("token", res.data.token);
+      }));
+      
+      if (result.type === 'auth/login/fulfilled') {
         toast.success("Login successful", {
           position: "top-right",
           autoClose: 3000,
         });
         setTimeout(() => {
           navigate("/");
-        }, 2000);
+        }, 1000);
+      } else {
+        toast.error(result.payload || "Login not successful", {
+          position: "top-right",
+          autoClose: 3000,
+        });
       }
     } catch (err) {
       toast.error("Login not successful", {
