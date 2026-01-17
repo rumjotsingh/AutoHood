@@ -4,13 +4,14 @@ import Navbar from "../components/Navbar";
 import { useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import axios from "axios";
+import { useDispatch } from "react-redux";
+import { createCar } from "../redux/slices/carsSlice";
 import {
   TextField,
   Button,
   Box,
   Typography,
-  CircularProgress,
+  
   Container,
   Paper,
   Grid,
@@ -48,6 +49,7 @@ function CarsForm() {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const dispatch = useDispatch();
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -72,24 +74,15 @@ function CarsForm() {
     formData.append("price", data.price);
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      await axios.post(
-        "https://carsystem-backend.onrender.com/api/v1/cars/new-car",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`
-          },
-        },
-      );
+      await dispatch(createCar(formData)).unwrap();
       reset();
       toast.success("Car Listed Successfully!");
       setFile(null);
       setPreviewUrl(null);
       setTimeout(() => navigate('/'), 2000);
     } catch (err) {
-      toast.error("Failed to create car listing");
+      const message = err?.message || err?.message?.message || "Failed to create car listing";
+      toast.error(message);
       console.error(err);
     } finally {
       setLoading(false);
@@ -545,7 +538,7 @@ function CarsForm() {
                           }}
                         >
                           {loading ? (
-                            <CircularProgress size={24} sx={{ color: "white" }} />
+                            "Creating..."
                           ) : (
                             "Create Listing"
                           )}

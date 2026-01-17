@@ -533,7 +533,7 @@ function Contact() {
                     <AccessTime sx={{ color: '#FB923C', fontSize: 26 }} />
                   </Box>
                   <Box>
-                    <Typography variant="h6" fontWeight={600}>
+                    <Typography sx={{ color: 'white' }} variant="h6" fontWeight={600}>
                       Support Hours
                     </Typography>
                     <Typography variant="body2" sx={{ color: '#94A3B8' }}>

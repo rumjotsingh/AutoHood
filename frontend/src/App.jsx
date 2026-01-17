@@ -8,6 +8,8 @@ import Register from './pages/Register';
 import PageNotFound from "./pages/PageNotFound";
 import CarsForm from "./Forms/CarsForm";
 import CarsDetailed from './pages/CarsDetailed';
+import Terms from './pages/Terms';
+import Cookies from './pages/Cookies';
 import { ToastContainer } from "react-toastify";
 import EditPage from './pages/EditPage';
 import Result from './pages/Result';
@@ -25,14 +27,23 @@ import ComparisonBar from "./components/ComparisonBar";
 
 const App = () => {
    return(
-  
+    <>
+  {/* <ToastContainer 
+      position="top-right"
+autoClose={5000}
+      hideProgressBar={false}
+      newestOnTop={false}
+      closeOnClick
+    /> */}
     <BrowserRouter>
-    <ToastContainer/>
+    
     <Routes>
         <Route path="/" element={<Homepage/>}></Route>
         <Route path="/login" element={<Login/>}></Route>
         <Route path="/about" element={<About/>}></Route>
         <Route path="/add-car" element={<CarsForm/>}></Route>
+        <Route path="/terms" element={<Terms/>}></Route>
+        <Route path="/cookies" element={<Cookies/>}></Route>
         <Route path="/cars/:id" element={<CarsDetailed/>}></Route>
         <Route path="/cars/payment/:id/success" element={<Success/>} ></Route>
         <Route path="/cars/payment/:id/cancel" element={<Cancel/>} ></Route>
@@ -54,7 +65,7 @@ const App = () => {
       {/* Floating comparison bar */}
       <ComparisonBar />
     </BrowserRouter>
-  
+  </>
   )
 };
 export default App;

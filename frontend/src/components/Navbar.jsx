@@ -464,11 +464,12 @@ function Navbar() {
                     boxShadow: '0 4px 14px rgba(249, 115, 22, 0.35)',
                     whiteSpace: 'nowrap',
                     minWidth: 'fit-content',
-                    '&:hover': {
-                      background: 'linear-gradient(135deg, #EA580C 0%, #F97316 100%)',
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 6px 20px rgba(249, 115, 22, 0.45)',
-                    },
+                    ":hover": {
+                      background: 'linear-gradient(135deg, #FB923C 0%, #F97316 100%)',
+                      boxShadow: '0 6px 20px rgba(251, 146, 60, 0.4)',  
+                      color: 'white',
+                    }
+                   
                   }}
                 >
                   Sell Car
