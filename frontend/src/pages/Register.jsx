@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import { toast } from "react-toastify";
 import { useNavigate, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -13,15 +13,14 @@ import {
   Paper, 
   Fade, 
   Stack,
-  Divider,
-  CircularProgress,
+
 } from "@mui/material";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 import { 
   Visibility, 
   VisibilityOff, 
-  DirectionsCar,
+  DirectionsCar,  
   Person,
   Email,
   Lock,
@@ -31,8 +30,8 @@ import {
   Support,
 } from "@mui/icons-material";
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
-import { registerUser, googleLogin } from '../redux/actions/authActions';
-import { jwtDecode } from "jwt-decode";
+import { registerUser } from '../redux/actions/authActions';
+
 
 function Register() {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -77,7 +76,7 @@ function Register() {
     if (!validateForm()) {
       toast.error("Please fix the errors in the form", {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 5000,
       });
       return;
     }
@@ -87,44 +86,20 @@ function Register() {
     if (result.type === 'auth/register/fulfilled') {
       toast.success("Registration Successful! Please log in.", {
         position: "top-right",
-        autoClose: 4000,
+        autoClose: 5000,
       });
       setTimeout(() => {
         navigate("/login");
-      }, 2000);
+      }, 1500);
     } else {
       toast.error(result.payload || "Registration Not Successful", {
         position: "top-center",
-        autoClose: 3000,
+        autoClose: 5000,
       });
     }
   };
 
-  const handleGoogleLogin = async (credentialResponse) => {
-    const jwt = credentialResponse.credential;
-    const payload = jwtDecode(jwt);
-
-    const result = await dispatch(googleLogin({
-      googleId: payload.sub,
-      email: payload.email,
-      name: payload.name,
-    }));
-
-    if (result.type === 'auth/googleLogin/fulfilled') {
-      toast.success("Login successful!", {
-        position: "top-center",
-        autoClose: 3000,
-      });
-      setTimeout(() => {
-        navigate("/");
-      }, 1000);
-    } else {
-      toast.error("Google Login Failed", {
-        position: "top-center",
-        autoClose: 3000,
-      });
-    }
-  };
+  
 
   const benefits = [
     { icon: <CheckCircle />, title: "Free Listings", desc: "List your car for free and reach millions of buyers" },
@@ -494,7 +469,7 @@ function Register() {
                         }}
                       >
                         {loading ? (
-                          <CircularProgress size={24} sx={{ color: 'white' }} />
+                          "Creating Account..."
                         ) : (
                           "Create Account"
                         )}
@@ -522,41 +497,10 @@ function Register() {
                       </Typography>
 
                       {/* Divider */}
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          my: 3,
-                        }}
-                      >
-                        <Divider sx={{ flex: 1 }} />
-                        <Typography 
-                          variant="caption" 
-                          sx={{ 
-                            px: 2, 
-                            color: '#94A3B8',
-                            fontWeight: 500,
-                          }}
-                        >
-                          or continue with
-                        </Typography>
-                        <Divider sx={{ flex: 1 }} />
-                      </Box>
+                     
 
                       {/* Google Login */}
-                      <Box display="flex" justifyContent="center">
-                        <GoogleLogin
-                          onSuccess={handleGoogleLogin}
-                          onError={() => {
-                            toast.error("Google Login Failed");
-                          }}
-                          theme="outline"
-                          size="large"
-                          text="signup_with"
-                          shape="rectangular"
-                          width="100%"
-                        />
-                      </Box>
+                   
 
                       {/* Login Link */}
                       <Box textAlign="center" mt={4}>

@@ -2,8 +2,7 @@ import { useForm } from "react-hook-form";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useNavigate, Link } from "react-router-dom";
-import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
-import { jwtDecode } from "jwt-decode";
+// ...existing code...
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import {
@@ -15,8 +14,7 @@ import {
   Paper,
   Fade,
   Stack,
-  Divider,
-  CircularProgress,
+  
 } from "@mui/material";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
@@ -32,14 +30,14 @@ import {
   Verified,
 } from "@mui/icons-material";
 import { useAppSelector, useAppDispatch } from '../redux/hooks';
-import { loginUser, googleLogin } from '../redux/actions/authActions';
+import { loginUser } from '../redux/actions/authActions';
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   
-  const Client = import.meta.env.VITE_API_KEY;
+  // ...existing code...
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { isAuthenticated } = useAppSelector((state) => state.auth);
@@ -94,31 +92,7 @@ function Login() {
     }
   };
 
-  const handleGoogleLogin = async (credentialResponse) => {
-    const jwt = credentialResponse.credential;
-    const payload = jwtDecode(jwt);
-
-    const result = await dispatch(googleLogin({
-      googleId: payload.sub,
-      email: payload.email,
-      name: payload.name,
-    }));
-
-    if (result.type === 'auth/googleLogin/fulfilled') {
-      toast.success("Login successful!", {
-        position: "top-center",
-        autoClose: 3000,
-      });
-      setTimeout(() => {
-        navigate("/");
-      }, 1000);
-    } else {
-      toast.error("Google Login Failed", {
-        position: "top-center",
-        autoClose: 3000,
-      });
-    }
-  };
+  // ...existing code...
 
   const benefits = [
     { icon: <Security />, title: "Secure Login", desc: "Your data is protected with industry-standard encryption" },
@@ -322,8 +296,7 @@ function Login() {
                     Enter your credentials to continue
                   </Typography>
 
-                  <GoogleOAuthProvider clientId={Client}>
-                    <form onSubmit={handleSubmit(handleLogin)}>
+                  <form onSubmit={handleSubmit(handleLogin)}>
                       {/* Email Field */}
                       <Box sx={{ mb: 2.5 }}>
                         <Typography variant="subtitle2" fontWeight={600} color="#0F172A" mb={1}>
@@ -445,48 +418,16 @@ function Login() {
                         }}
                       >
                         {loading ? (
-                          <CircularProgress size={24} sx={{ color: 'white' }} />
+                          "Signing In..."
                         ) : (
                           "Sign In"
                         )}
                       </Button>
 
                       {/* Divider */}
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          my: 3,
-                        }}
-                      >
-                        <Divider sx={{ flex: 1 }} />
-                        <Typography 
-                          variant="caption" 
-                          sx={{ 
-                            px: 2, 
-                            color: '#94A3B8',
-                            fontWeight: 500,
-                          }}
-                        >
-                          or continue with
-                        </Typography>
-                        <Divider sx={{ flex: 1 }} />
-                      </Box>
+                     
 
-                      {/* Google Login */}
-                      <Box display="flex" justifyContent="center">
-                        <GoogleLogin
-                          onSuccess={handleGoogleLogin}
-                          onError={() => {
-                            toast.error("Google Login Failed");
-                          }}
-                          theme="outline"
-                          size="large"
-                          text="signin_with"
-                          shape="rectangular"
-                          width="100%"
-                        />
-                      </Box>
+                      {/* ...Google Login removed... */}
 
                       {/* Register Link */}
                       <Box textAlign="center" mt={4}>
@@ -505,7 +446,7 @@ function Login() {
                         </Typography>
                       </Box>
                     </form>
-                  </GoogleOAuthProvider>
+                  {/* ...GoogleOAuthProvider removed... */}
                 </Box>
               </Box>
             </Paper>

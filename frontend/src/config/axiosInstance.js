@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: "https://carsystem-backend.onrender.com/api",
+  baseURL: "http://localhost:8080/api",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
@@ -20,7 +20,7 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response interceptor - handles token expiry and errors
@@ -49,7 +49,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

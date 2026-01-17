@@ -217,17 +217,7 @@ function Homepage() {
                   animation: mounted ? 'fadeInUp 0.8s ease-out' : 'none',
                 }}
               >
-                <Chip 
-                  label="🚗 India's #1 Car Marketplace" 
-                  sx={{ 
-                    bgcolor: 'rgba(249, 115, 22, 0.2)', 
-                    color: '#FB923C',
-                    fontWeight: 600,
-                    mb: 3,
-                    fontSize: '0.85rem',
-                    py: 2,
-                  }} 
-                />
+                
                 <Typography
                   variant="h1"
                   fontWeight={800}
@@ -236,6 +226,7 @@ function Homepage() {
                     lineHeight: 1.1,
                     mb: 3,
                     letterSpacing: '-0.02em',
+                    color: 'white', 
                   }}
                 >
                   Find Your Perfect
@@ -388,7 +379,7 @@ function Homepage() {
         <Container maxWidth="lg">
           {/* Section Header */}
           <Box mb={5} textAlign="center">
-            <Chip 
+            {/* <Chip 
               label="Featured Collection" 
               sx={{ 
                 bgcolor: '#FFF7ED', 
@@ -396,7 +387,7 @@ function Homepage() {
                 fontWeight: 600,
                 mb: 2,
               }} 
-            />
+            /> */}
             <Typography 
               variant="h3" 
               fontWeight={800} 
@@ -598,7 +589,7 @@ function Homepage() {
       <Box sx={{ py: { xs: 6, md: 8 }, bgcolor: 'white' }}>
         <Container maxWidth="lg">
           <Box textAlign="center" mb={6}>
-            <Chip 
+            {/* <Chip 
               label="Simple Process" 
               sx={{ 
                 bgcolor: '#FFF7ED', 
@@ -606,7 +597,7 @@ function Homepage() {
                 fontWeight: 600,
                 mb: 2,
               }} 
-            />
+            /> */}
             <Typography 
               variant="h3" 
               fontWeight={800} 

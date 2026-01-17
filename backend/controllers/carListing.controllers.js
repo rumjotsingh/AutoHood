@@ -1,6 +1,7 @@
 import CarsModel from "../models/carListing.js";
 import fs from "fs";
 import path from "path";
+import User from "./../models/user.js";
 export const GetAllCarsController = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -45,12 +46,18 @@ export const getSingleCarController = async (req, res) => {
     let { id } = req.params;
     const car = await CarsModel.findById(id).populate({
       path: "reviews",
+
       populate: { path: "author", select: "name email" }, // Populate the author details
     });
+    console.log(car);
+
+    const ownerDetails = await User.findById(car.owner).select("name email");
+    const carObj = car.toObject();
+    carObj.ownerDetails = ownerDetails;
     if (!car) {
       return res.status(404).json({ message: "Car not found" });
     } else {
-      return res.status(200).json(car);
+      return res.status(200).json(carObj);
     }
   } catch (err) {
     res.status(500).json({ message: err.message });

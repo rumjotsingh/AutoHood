@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CircularProgress } from "@mui/material";
 import { 
   Box, 
   Typography, 
@@ -20,18 +21,21 @@ const ReviewsForm = ({ refresh }) => {
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState("");
   const [hoveredRating, setHoveredRating] = useState(-1);
+  const [loading, setLoading] = useState(false);
   
   const { id } = useParams();
 
   const handleSubmit = async () => {
     if (rating && review.trim()) {
+      setLoading(true);
       try {
         const token = localStorage.getItem("token");
         if (!token) {
           toast.error("You must be logged in to submit a review");
+          setLoading(false);
           return;
         }
-  
+
         const response = await fetch(API_ENDPOINTS.REVIEWS.CREATE(id), {
           method: "POST",
           headers: {
@@ -44,7 +48,7 @@ const ReviewsForm = ({ refresh }) => {
             comment: review,
           }),
         });
-      
+
         if (response.status === 200) {
           toast.success("Review submitted successfully!");
           refresh();
@@ -57,6 +61,7 @@ const ReviewsForm = ({ refresh }) => {
         console.error("Error:", error.message);
         toast.error("An error occurred while submitting the review.");
       }
+      setLoading(false);
     } else {
       toast.error("Please provide a rating and a review description.");
     }
@@ -207,9 +212,9 @@ const ReviewsForm = ({ refresh }) => {
           <Button 
             variant="contained" 
             onClick={handleSubmit}
-            startIcon={<Send />}
+            startIcon={!loading && <Send />}
             fullWidth
-            disabled={!rating || !review.trim()}
+            disabled={loading || !rating || !review.trim()}
             sx={{
               py: 1.75,
               borderRadius: '14px',
@@ -230,7 +235,7 @@ const ReviewsForm = ({ refresh }) => {
               },
             }}
           >
-            Submit Review
+            {loading ? "Submitting..." : "Submit Review"}
           </Button>
 
           {/* Helper Text */}

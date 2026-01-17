@@ -51,16 +51,18 @@ import { API_ENDPOINTS } from '../config/api';
 import axios from 'axios';
 import FavoriteButton from "../components/FavoriteButton";
 import InquiryModal from "../components/InquiryModal";
-import { Message } from "@mui/icons-material";
+import { Message, CircularProgress } from "@mui/icons-material";
 
 
 function CarsDetailed() {
   const { id } = useParams();
   const [refreshTrigger, setRefreshTrigger] = useState(false);
+  const [deletingReviewId, setDeletingReviewId] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [inquiryModal, setInquiryModal] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [deletingCar, setDeletingCar] = useState(false);
   const navigate = useNavigate();
   
   const dispatch = useAppDispatch();
@@ -76,8 +78,8 @@ function CarsDetailed() {
   }, [id, dispatch, refreshTrigger]);
 
   const handleDeleteCar = async () => {
+    setDeletingCar(true);
     const result = await dispatch(deleteCar({ id, token }));
-    
     if (result.type === 'cars/delete/fulfilled') {
       toast.success("Car listing deleted successfully!");
       setTimeout(() => navigate("/"), 2000);
@@ -85,11 +87,17 @@ function CarsDetailed() {
       toast.error(result.payload?.message || "Failed to delete car listing");
     }
     setDeleteModal(false);
+    setDeletingCar(false);
   };
 
   const handleDeleteReview = async (reviewId) => {
+    setDeletingReviewId(reviewId);
     try {
-      if (!token) return toast.error("You must be logged in to delete a review.");
+      if (!token) {
+        toast.error("You must be logged in to delete a review.");
+        setDeletingReviewId(null);
+        return;
+      }
       const res = await fetch(API_ENDPOINTS.REVIEWS.DELETE(reviewId), {
         method: "DELETE",
         headers: {
@@ -110,6 +118,7 @@ function CarsDetailed() {
       console.error("Error deleting review:", error);
       toast.error("An error occurred while deleting the review.");
     }
+    setDeletingReviewId(null);
   };
 
   const handleCarEdit = () => navigate(`/edit/${id}`);
@@ -425,17 +434,17 @@ function CarsDetailed() {
                           fontSize: '1.25rem',
                         }}
                       >
-                        {details.owner?.name?.charAt(0).toUpperCase() || 'S'}
+                        {details.ownerDetails?.name?.charAt(0).toUpperCase() || 'S'}
                       </Avatar>
                       <Box>
                         <Typography variant="subtitle1" fontWeight={600} color="#0F172A">
-                          {details.owner?.name || 'Seller'}
+                          {details.ownerDetails?.name || 'Seller'}
                         </Typography>
-                        {details.owner?.email && (
+                        {details.ownerDetails?.email && (
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                             <Email sx={{ fontSize: 16, color: '#64748B' }} />
                             <Typography variant="body2" color="#64748B">
-                              {details.owner.email}
+                              {details.ownerDetails.email}
                             </Typography>
                           </Box>
                         )}
@@ -926,6 +935,8 @@ function CarsDetailed() {
                     fullWidth
                     variant="contained"
                     onClick={handleDeleteCar}
+                    disabled={deletingCar}
+                    startIcon={deletingCar ? "Deleting...." : undefined}
                     sx={{
                       py: 1.5,
                       borderRadius: '12px',
@@ -937,7 +948,7 @@ function CarsDetailed() {
                       },
                     }}
                   >
-                    Delete
+                    {deletingCar ? 'Deleting...' : 'Delete'}
                   </Button>
                 </Stack>
               </Paper>
@@ -1053,8 +1064,9 @@ function CarsDetailed() {
                           {token && (
                             <Button
                               size="small"
-                              startIcon={<DeleteIcon sx={{ fontSize: 16 }} />}
+                              startIcon={deletingReviewId === review._id ? <CircularProgress size={16} sx={{ color: '#EF4444' }} /> : <DeleteIcon sx={{ fontSize: 16 }} />}
                               onClick={() => handleDeleteReview(review._id)}
+                              disabled={deletingReviewId === review._id}
                               sx={{
                                 color: '#EF4444',
                                 textTransform: 'none',
@@ -1064,7 +1076,7 @@ function CarsDetailed() {
                                 },
                               }}
                             >
-                              Delete Review
+                              {deletingReviewId === review._id ? "Deleting..." : "Delete Review"}
                             </Button>
                           )}
                         </Box>

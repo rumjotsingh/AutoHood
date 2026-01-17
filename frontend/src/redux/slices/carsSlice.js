@@ -7,13 +7,13 @@ export const fetchAllCars = createAsyncThunk(
   async ({ page = 1, limit = 3 }, { rejectWithValue }) => {
     try {
       const response = await api.get(
-        `/v1/cars/all-cars?page=${page}&limit=${limit}`
+        `/v1/cars/all-cars?page=${page}&limit=${limit}`,
       );
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || "Failed to fetch cars");
     }
-  }
+  },
 );
 
 export const fetchCarDetails = createAsyncThunk(
@@ -25,7 +25,7 @@ export const fetchCarDetails = createAsyncThunk(
     } catch {
       return rejectWithValue("Failed to fetch car details");
     }
-  }
+  },
 );
 
 export const searchCars = createAsyncThunk(
@@ -33,13 +33,13 @@ export const searchCars = createAsyncThunk(
   async (searchTerm, { rejectWithValue }) => {
     try {
       const response = await api.get(
-        `/v1/cars/search?query=${encodeURIComponent(searchTerm)}`
+        `/v1/cars/search?query=${encodeURIComponent(searchTerm)}`,
       );
       return response.data;
     } catch {
       return rejectWithValue("Failed to search cars");
     }
-  }
+  },
 );
 
 export const deleteCar = createAsyncThunk(
@@ -51,7 +51,21 @@ export const deleteCar = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error.response?.data || "Failed to delete car");
     }
-  }
+  },
+);
+
+export const createCar = createAsyncThunk(
+  "cars/create",
+  async (formData, { rejectWithValue }) => {
+    try {
+      const response = await api.post("/v1/cars/new-car", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return response.data; // { message, newCar }
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Failed to create car");
+    }
+  },
 );
 
 const initialState = {
@@ -145,6 +159,26 @@ const carsSlice = createSlice({
         state.cars = state.cars.filter((car) => car._id !== action.payload);
       })
       .addCase(deleteCar.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+
+    // Create car
+    builder
+      .addCase(createCar.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createCar.fulfilled, (state, action) => {
+        state.loading = false;
+        // action.payload expected: { message, newCar }
+        const newCar =
+          action.payload?.newCar || action.payload?.data || action.payload;
+        if (newCar) {
+          state.cars = [newCar, ...state.cars];
+        }
+      })
+      .addCase(createCar.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
