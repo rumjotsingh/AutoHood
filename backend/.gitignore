@@ -1,66 +1,59 @@
-# Node modules
+# Dependencies
 node_modules/
-
-# Logs
-logs
-*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
 
 # Environment variables
 .env
-.env.*
-!.env.example
+.env.local
+.env.development
+.env.test
+.env.production
 
-# Build / production folders
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory
+coverage/
+.nyc_output/
+
+# Build outputs
 dist/
 build/
-out/
 
-# Dependency directories
-jspm_packages/
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Editor directories and files
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
+.DS_Store
 
-# Mac system files
-.AppleDouble
-.LSOverride
-
-# Temporary files
-tmp/
+# Uploads (if storing locally)
+uploads/
 temp/
 
-# Coverage directory used by tools like jest
-coverage/
+# Test files
+test-results/
 
-# Parcel / Next / Vite cache
+# Cache
 .cache/
-.next/
-.nuxt/
-.vite/
+.parcel-cache/
 
-# TypeScript
-*.tsbuildinfo
+# Optional npm cache directory
+.npm
 
-# Docker
-docker-compose.override.yml
-
-# Local database files
-*.sqlite
-*.sqlite3
-*.db
+# Optional eslint cache
+.eslintcache
 
 # Misc
-*.pid
-*.seed
-*.tgz
+*.pem
+.vercel
