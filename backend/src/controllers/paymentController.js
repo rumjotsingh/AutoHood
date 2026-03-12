@@ -7,13 +7,25 @@ import Payment from '../models/Payment.js';
 import Transaction from '../models/Transaction.js';
 import Invoice from '../models/Invoice.js';
 
+// Debug: Check environment variables
+console.log('🔍 Checking Razorpay environment variables:');
+console.log('   RAZORPAY_KEY_ID:', process.env.RAZORPAY_KEY_ID ? '✅ Set' : '❌ Not set');
+console.log('   RAZORPAY_KEY_SECRET:', process.env.RAZORPAY_KEY_SECRET ? '✅ Set' : '❌ Not set');
+
 // Initialize payment gateways
 let razorpay;
 if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
-  razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET,
-  });
+  try {
+    razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+    console.log('✅ Razorpay initialized successfully');
+  } catch (error) {
+    console.error('❌ Failed to initialize Razorpay:', error.message);
+  }
+} else {
+  console.warn('⚠️  Razorpay credentials not found in environment variables');
 }
 
 let stripe;
@@ -27,17 +39,49 @@ if (process.env.STRIPE_SECRET_KEY) {
 export const createRazorpayOrder = asyncHandler(async (req, res) => {
   const { orderId } = req.body;
 
+  console.log('📝 Creating Razorpay order for orderId:', orderId);
+  console.log('🔑 Razorpay instance exists:', !!razorpay);
+
+  // Try to initialize Razorpay if not already initialized
+  if (!razorpay && process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+    console.log('🔄 Attempting to initialize Razorpay now...');
+    try {
+      razorpay = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID,
+        key_secret: process.env.RAZORPAY_KEY_SECRET,
+      });
+      console.log('✅ Razorpay initialized successfully (lazy init)');
+    } catch (error) {
+      console.error('❌ Failed to initialize Razorpay:', error.message);
+    }
+  }
+
+  // Check if Razorpay is configured
+  if (!razorpay) {
+    console.error('❌ Razorpay is not initialized');
+    console.error('   RAZORPAY_KEY_ID:', process.env.RAZORPAY_KEY_ID ? 'Set' : 'Not set');
+    console.error('   RAZORPAY_KEY_SECRET:', process.env.RAZORPAY_KEY_SECRET ? 'Set' : 'Not set');
+    return res.status(500).json({
+      success: false,
+      message: 'Razorpay is not configured. Please check your environment variables.',
+    });
+  }
+
   const order = await Order.findById(orderId);
 
   if (!order) {
+    console.error('❌ Order not found:', orderId);
     return res.status(404).json({
       success: false,
       message: 'Order not found',
     });
   }
 
+  console.log('✅ Order found:', order.orderNumber);
+
   // Check if user owns the order
   if (order.user.toString() !== req.user.id) {
+    console.error('❌ User not authorized for order:', orderId);
     return res.status(403).json({
       success: false,
       message: 'Not authorized',
@@ -45,12 +89,14 @@ export const createRazorpayOrder = asyncHandler(async (req, res) => {
   }
 
   const amountInPaise = Math.round(order.pricing.total * 100);
+  console.log('💰 Amount in paise:', amountInPaise);
 
   // Demo mode check
   const MAX_AMOUNT_PAISE = 5000000; // ₹50,000
   const DEMO_MODE = process.env.PAYMENT_DEMO_MODE === 'true';
 
   if (DEMO_MODE && amountInPaise > MAX_AMOUNT_PAISE) {
+    console.log('🎭 Demo mode activated for high-value transaction');
     return res.json({
       success: true,
       demoMode: true,
@@ -71,33 +117,49 @@ export const createRazorpayOrder = asyncHandler(async (req, res) => {
     },
   };
 
-  const razorpayOrder = await razorpay.orders.create(options);
+  console.log('📤 Creating Razorpay order with options:', options);
 
-  // Create payment record
-  const payment = await Payment.create({
-    order: order._id,
-    user: req.user.id,
-    gateway: 'razorpay',
-    amount: order.pricing.total,
-    currency: order.currency,
-    gatewayOrderId: razorpayOrder.id,
-    razorpay: {
+  try {
+    const razorpayOrder = await razorpay.orders.create(options);
+    console.log('✅ Razorpay order created:', razorpayOrder.id);
+
+    // Create payment record
+    const payment = await Payment.create({
+      order: order._id,
+      user: req.user.id,
+      gateway: 'razorpay',
+      amount: order.pricing.total,
+      currency: order.currency,
+      gatewayOrderId: razorpayOrder.id,
+      razorpay: {
+        orderId: razorpayOrder.id,
+      },
+    });
+
+    console.log('✅ Payment record created:', payment._id);
+
+    order.payment = payment._id;
+    order.paymentMethod = 'razorpay';
+    await order.save();
+
+    console.log('✅ Order updated with payment info');
+
+    res.json({
+      success: true,
       orderId: razorpayOrder.id,
-    },
-  });
-
-  order.payment = payment._id;
-  order.paymentMethod = 'razorpay';
-  await order.save();
-
-  res.json({
-    success: true,
-    orderId: razorpayOrder.id,
-    amount: razorpayOrder.amount,
-    currency: razorpayOrder.currency,
-    keyId: process.env.RAZORPAY_KEY_ID,
-    paymentId: payment._id,
-  });
+      amount: razorpayOrder.amount,
+      currency: razorpayOrder.currency,
+      keyId: process.env.RAZORPAY_KEY_ID,
+      paymentId: payment._id,
+    });
+  } catch (error) {
+    console.error('❌ Razorpay order creation error:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to create Razorpay order',
+      error: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+    });
+  }
 });
 
 // @desc    Verify Razorpay payment

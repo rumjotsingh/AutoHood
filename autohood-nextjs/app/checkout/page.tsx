@@ -39,34 +39,75 @@ export default function CheckoutPage() {
   }, [isAuthenticated, items, router]);
 
   const handlePlaceOrder = async () => {
+    // Validate shipping address
+    if (!shippingAddress.street || !shippingAddress.city || !shippingAddress.state || !shippingAddress.zipCode) {
+      toast.error("Please fill in all shipping address fields");
+      return;
+    }
+
     setLoading(true);
     try {
+      // Validate shipping address
+      if (!shippingAddress.street || !shippingAddress.city || !shippingAddress.state || !shippingAddress.zipCode) {
+        toast.error("Please fill in all shipping address fields");
+        setLoading(false);
+        return;
+      }
+
       // Create order
       const orderData = {
         orderType: "part",
         items: items.map((item) => ({
-          product: item.id,
+          part: item.id,
+          name: item.name,
           quantity: item.quantity,
           price: item.price,
+          subtotal: item.price * item.quantity,
         })),
         pricing: {
           subtotal: total,
           tax: total * 0.18,
+          taxRate: 18,
           total: total * 1.18,
         },
-        shippingAddress,
-        billingAddress: shippingAddress,
+        shippingAddress: {
+          ...shippingAddress,
+          name: user?.name || "",
+          email: user?.email || "",
+          phone: user?.phone || "",
+          address: shippingAddress.street,
+          pincode: shippingAddress.zipCode,
+        },
+        billingAddress: {
+          ...shippingAddress,
+          name: user?.name || "",
+          email: user?.email || "",
+          phone: user?.phone || "",
+          address: shippingAddress.street,
+          pincode: shippingAddress.zipCode,
+        },
       };
 
       const orderResponse = await ordersAPI.create(orderData);
       const order = orderResponse.data.data;
+
+      if (!order || !order._id) {
+        throw new Error("Failed to create order");
+      }
 
       // Create Razorpay order
       const paymentResponse = await paymentsAPI.createRazorpayOrder({
         orderId: order._id,
       });
 
-      const { razorpayOrderId, amount, currency } = paymentResponse.data;
+      const razorpayData = paymentResponse.data;
+      const razorpayOrderId = razorpayData.orderId || razorpayData.data?.orderId;
+      const amount = razorpayData.amount || razorpayData.data?.amount;
+      const currency = razorpayData.currency || razorpayData.data?.currency || "INR";
+
+      if (!razorpayOrderId) {
+        throw new Error("Failed to create Razorpay order");
+      }
 
       // Initialize Razorpay
       const options = {
@@ -78,16 +119,29 @@ export default function CheckoutPage() {
         order_id: razorpayOrderId,
         handler: async function (response: any) {
           try {
-            await paymentsAPI.verifyRazorpayPayment({
+            const verifyResponse = await paymentsAPI.verifyRazorpayPayment({
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
             });
+            
+            console.log("Payment verified:", verifyResponse);
+            
+            // Clear cart first
             clearCart();
+            
+            // Show success message
             toast.success("Payment successful!");
-            router.push(`/orders?success=true&orderNumber=${order.orderNumber}`);
-          } catch (error) {
-            toast.error("Payment verification failed. Please contact support.");
+            
+            // Wait a bit before redirecting to ensure state is updated
+            setTimeout(() => {
+              router.push(`/orders?success=true&orderNumber=${order.orderNumber}`);
+            }, 500);
+          } catch (error: any) {
+            console.error("Payment verification error:", error);
+            const errorMsg = error?.response?.data?.message || "Payment verification failed. Please contact support.";
+            toast.error(errorMsg);
+            setLoading(false);
           }
         },
         prefill: {
@@ -97,13 +151,24 @@ export default function CheckoutPage() {
         theme: {
           color: "#2563EB",
         },
+        modal: {
+          ondismiss: function() {
+            setLoading(false);
+            toast.error("Payment cancelled");
+          }
+        }
       };
 
       const razorpay = new window.Razorpay(options);
+      razorpay.on('payment.failed', function (response: any){
+        setLoading(false);
+        toast.error("Payment failed. Please try again.");
+      });
       razorpay.open();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Order creation failed. Please try again.");
-    } finally {
+      console.error("Order creation error:", error);
+      const errorMessage = error.response?.data?.message || error.message || "Order creation failed. Please try again.";
+      toast.error(errorMessage);
       setLoading(false);
     }
   };

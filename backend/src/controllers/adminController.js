@@ -29,9 +29,17 @@ export const getAdminStats = asyncHandler(async (req, res) => {
     Order.find().sort('-createdAt').limit(5).populate('user', 'name email'),
   ]);
 
-  // Calculate total revenue
-  const orders = await Order.find({ paymentStatus: 'completed' });
-  const totalRevenue = orders.reduce((sum, order) => sum + (order.pricing?.total || 0), 0);
+  // Calculate total revenue from completed payments
+  const completedOrders = await Order.find({ paymentStatus: 'completed' });
+  const totalRevenue = completedOrders.reduce((sum, order) => sum + (order.pricing?.total || 0), 0);
+
+  // Calculate revenue from bookings
+  const Booking = (await import('../models/Booking.js')).default;
+  const completedBookings = await Booking.find({ paymentStatus: 'completed' });
+  const bookingRevenue = completedBookings.reduce((sum, booking) => sum + (booking.bookingAmount || 0), 0);
+
+  // Total revenue including bookings
+  const combinedRevenue = totalRevenue + bookingRevenue;
 
   res.json({
     success: true,
@@ -42,7 +50,9 @@ export const getAdminStats = asyncHandler(async (req, res) => {
       totalDealers,
       totalBrands,
       totalParts,
-      totalRevenue,
+      totalRevenue: combinedRevenue,
+      orderRevenue: totalRevenue,
+      bookingRevenue: bookingRevenue,
       recentOrders,
     },
   });

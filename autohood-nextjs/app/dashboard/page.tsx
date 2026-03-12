@@ -272,9 +272,9 @@ export default function DashboardPage() {
                       <TrendingUp className="w-4 h-4 ml-1" />
                     </Link>
                   </div>
-                  {ordersData?.data?.data?.length > 0 ? (
+                  {ordersData?.data?.data && ordersData.data.data.length > 0 ? (
                     <div className="space-y-4">
-                      {ordersData?.data?.data?.slice(0, 5).map((order: any) => (
+                      {ordersData.data.data.slice(0, 5).map((order: any) => (
                         <motion.div
                           key={order._id}
                           initial={{ opacity: 0, x: -20 }}

@@ -3,6 +3,7 @@ import Brand from '../models/Brand.js';
 import Car from '../models/Car.js';
 import User from '../models/User.js';
 import Dealer from '../models/Dealer.js';
+import Part from '../models/Part.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -179,10 +180,336 @@ const seedDatabase = async () => {
     const createdCars = await Car.insertMany(carsWithBrands);
     console.log(`✅ Created ${createdCars.length} cars`);
 
+    // Create Parts
+    console.log('Creating parts...');
+    const parts = [
+      {
+        name: 'Michelin Pilot Sport 4 Tyre',
+        category: 'wheels',
+        brand: brandMap['Maruti Suzuki'],
+        price: 8500,
+        description: 'High-performance summer tyre with excellent grip and handling',
+        stock: 50,
+        sku: `PART-${Date.now()}-1`,
+        seller: demoUser._id,
+        dealer: demoDealer._id,
+        condition: 'new',
+        compatibility: [
+          {
+            brand: brandMap['Maruti Suzuki'],
+            models: ['Swift', 'Baleno', 'Vitara Brezza'],
+            years: [2020, 2021, 2022, 2023],
+          },
+        ],
+        images: [
+          {
+            url: 'https://images.unsplash.com/photo-1606220838315-056192d5e927?w=800',
+            public_id: 'parts/tyre1',
+            isPrimary: true,
+          },
+        ],
+      },
+      {
+        name: 'Bosch Aerotwin Wiper Blades',
+        category: 'exterior',
+        brand: brandMap['Hyundai'],
+        price: 1200,
+        description: 'Premium flat wiper blades for clear visibility in all weather',
+        stock: 100,
+        sku: `PART-${Date.now()}-2`,
+        seller: demoUser._id,
+        dealer: demoDealer._id,
+        condition: 'new',
+        compatibility: [
+          {
+            brand: brandMap['Hyundai'],
+            models: ['i20', 'Creta', 'Venue'],
+            years: [2019, 2020, 2021, 2022, 2023],
+          },
+        ],
+        images: [
+          {
+            url: 'https://images.unsplash.com/photo-1625047509168-a7026f36de04?w=800',
+            public_id: 'parts/wiper1',
+            isPrimary: true,
+          },
+        ],
+      },
+      {
+        name: 'K&N Air Filter',
+        category: 'engine',
+        brand: brandMap['Tata'],
+        price: 3500,
+        description: 'High-flow reusable air filter for improved engine performance',
+        stock: 75,
+        sku: `PART-${Date.now()}-3`,
+        seller: demoUser._id,
+        dealer: demoDealer._id,
+        condition: 'new',
+        compatibility: [
+          {
+            brand: brandMap['Tata'],
+            models: ['Nexon', 'Harrier', 'Safari'],
+            years: [2020, 2021, 2022, 2023],
+          },
+        ],
+        images: [
+          {
+            url: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800',
+            public_id: 'parts/filter1',
+            isPrimary: true,
+          },
+        ],
+      },
+      {
+        name: 'Exide Car Battery 12V 65Ah',
+        category: 'electrical',
+        brand: brandMap['Mahindra'],
+        price: 6500,
+        description: 'Maintenance-free car battery with 36 months warranty',
+        stock: 40,
+        sku: `PART-${Date.now()}-4`,
+        seller: demoUser._id,
+        dealer: demoDealer._id,
+        condition: 'new',
+        warranty: {
+          available: true,
+          duration: 36,
+          description: '36 months replacement warranty',
+        },
+        compatibility: [
+          {
+            brand: brandMap['Mahindra'],
+            models: ['XUV700', 'Scorpio', 'Thar'],
+            years: [2019, 2020, 2021, 2022, 2023],
+          },
+        ],
+        images: [
+          {
+            url: 'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=800',
+            public_id: 'parts/battery1',
+            isPrimary: true,
+          },
+        ],
+      },
+      {
+        name: 'Brembo Brake Pads Set',
+        category: 'brakes',
+        brand: brandMap['Honda'],
+        price: 4200,
+        description: 'Premium ceramic brake pads for superior stopping power',
+        stock: 60,
+        sku: `PART-${Date.now()}-5`,
+        seller: demoUser._id,
+        dealer: demoDealer._id,
+        condition: 'new',
+        compatibility: [
+          {
+            brand: brandMap['Honda'],
+            models: ['City', 'Amaze', 'WR-V'],
+            years: [2018, 2019, 2020, 2021, 2022, 2023],
+          },
+        ],
+        images: [
+          {
+            url: 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=800',
+            public_id: 'parts/brake1',
+            isPrimary: true,
+          },
+        ],
+      },
+      {
+        name: 'Castrol Engine Oil 5W-30 (4L)',
+        category: 'engine',
+        brand: brandMap['Toyota'],
+        price: 2800,
+        description: 'Fully synthetic engine oil for maximum engine protection',
+        stock: 120,
+        sku: `PART-${Date.now()}-6`,
+        seller: demoUser._id,
+        dealer: demoDealer._id,
+        condition: 'new',
+        compatibility: [
+          {
+            brand: brandMap['Toyota'],
+            models: ['Fortuner', 'Innova Crysta', 'Urban Cruiser'],
+            years: [2018, 2019, 2020, 2021, 2022, 2023],
+          },
+        ],
+        images: [
+          {
+            url: 'https://images.unsplash.com/photo-1615906655593-ad0386982a0f?w=800',
+            public_id: 'parts/oil1',
+            isPrimary: true,
+          },
+        ],
+      },
+      {
+        name: 'Philips LED Headlight Bulbs',
+        category: 'lighting',
+        brand: brandMap['Hyundai'],
+        price: 2500,
+        description: 'Ultra-bright LED headlight bulbs with 6000K white light',
+        stock: 80,
+        sku: `PART-${Date.now()}-7`,
+        seller: demoUser._id,
+        dealer: demoDealer._id,
+        condition: 'new',
+        compatibility: [
+          {
+            brand: brandMap['Hyundai'],
+            models: ['Creta', 'Venue', 'i20'],
+            years: [2019, 2020, 2021, 2022, 2023],
+          },
+        ],
+        images: [
+          {
+            url: 'https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=800',
+            public_id: 'parts/light1',
+            isPrimary: true,
+          },
+        ],
+      },
+      {
+        name: '3M Car Seat Covers (Set of 5)',
+        category: 'interior',
+        brand: brandMap['Maruti Suzuki'],
+        price: 3200,
+        description: 'Premium leather seat covers with cushioning',
+        stock: 45,
+        sku: `PART-${Date.now()}-8`,
+        seller: demoUser._id,
+        dealer: demoDealer._id,
+        condition: 'new',
+        compatibility: [
+          {
+            brand: brandMap['Maruti Suzuki'],
+            models: ['Swift', 'Baleno', 'Brezza'],
+            years: [2018, 2019, 2020, 2021, 2022, 2023],
+          },
+        ],
+        images: [
+          {
+            url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800',
+            public_id: 'parts/seat1',
+            isPrimary: true,
+          },
+        ],
+      },
+    ];
+
+    // Create parts one by one to trigger pre-save hooks
+    const createdParts = [];
+    for (const partData of parts) {
+      const part = await Part.create(partData);
+      createdParts.push(part);
+    }
+    console.log(`✅ Created ${createdParts.length} parts`);
+
+    // Create More Dealers
+    console.log('Creating additional dealers...');
+    
+    // Create users for additional dealers
+    const dealerUsers = [];
+    for (let i = 1; i <= 4; i++) {
+      const dealerUser = await User.create({
+        name: `Dealer ${i}`,
+        email: `dealer${i}@autohood.com`,
+        password: 'dealer123',
+        phone: `987654321${i}`,
+        role: 'dealer',
+      });
+      dealerUsers.push(dealerUser);
+    }
+    
+    const additionalDealers = [
+      {
+        user: dealerUsers[0]._id,
+        companyName: 'Premium Auto Hub',
+        businessType: 'dealership',
+        location: {
+          address: '456 MG Road',
+          city: 'Bangalore',
+          state: 'Karnataka',
+          pincode: '560001',
+        },
+        contactEmail: 'contact@premiumautohub.com',
+        contactPhone: '9876543211',
+        description: 'Authorized dealer for luxury and premium cars',
+        verified: true,
+        rating: {
+          average: 4.7,
+          count: 85,
+        },
+      },
+      {
+        user: dealerUsers[1]._id,
+        companyName: 'City Motors',
+        businessType: 'dealership',
+        location: {
+          address: '789 Park Street',
+          city: 'Mumbai',
+          state: 'Maharashtra',
+          pincode: '400001',
+        },
+        contactEmail: 'info@citymotors.com',
+        contactPhone: '9876543212',
+        description: 'Multi-brand car dealership with excellent service',
+        verified: true,
+        rating: {
+          average: 4.5,
+          count: 120,
+        },
+      },
+      {
+        user: dealerUsers[2]._id,
+        companyName: 'Royal Auto Palace',
+        businessType: 'dealership',
+        location: {
+          address: '321 Nehru Place',
+          city: 'Delhi',
+          state: 'Delhi',
+          pincode: '110019',
+        },
+        contactEmail: 'sales@royalauto.com',
+        contactPhone: '9876543213',
+        description: 'Premium dealership specializing in SUVs and luxury cars',
+        verified: true,
+        rating: {
+          average: 4.8,
+          count: 95,
+        },
+      },
+      {
+        user: dealerUsers[3]._id,
+        companyName: 'Speed Auto Center',
+        businessType: 'dealership',
+        location: {
+          address: '555 Anna Salai',
+          city: 'Chennai',
+          state: 'Tamil Nadu',
+          pincode: '600002',
+        },
+        contactEmail: 'contact@speedauto.com',
+        contactPhone: '9876543214',
+        description: 'Trusted dealer with 20+ years of experience',
+        verified: false,
+        rating: {
+          average: 4.3,
+          count: 65,
+        },
+      },
+    ];
+
+    const createdAdditionalDealers = await Dealer.insertMany(additionalDealers);
+    console.log(`✅ Created ${createdAdditionalDealers.length} additional dealers`);
+
     console.log('\n🎉 Database seeded successfully!');
     console.log('\n📊 Summary:');
     console.log(`   Brands: ${createdBrands.length}`);
     console.log(`   Cars: ${createdCars.length}`);
+    console.log(`   Parts: ${createdParts.length}`);
+    console.log(`   Dealers: ${createdAdditionalDealers.length + 1}`);
     console.log(`   Demo Dealer: dealer@autohood.com / dealer123`);
     console.log(`   Demo Buyer: buyer@autohood.com / buyer123`);
     

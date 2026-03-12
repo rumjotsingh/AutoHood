@@ -44,9 +44,10 @@ export const createBookingOrder = asyncHandler(async (req, res) => {
     });
   }
 
-  // Calculate amounts
+  // Calculate amounts - Fixed token amount of ₹10,000
   const carPrice = car.price;
-  const tokenAmount = bookingAmount || Math.round(carPrice * 0.025); // 2.5% or custom
+  const FIXED_TOKEN_AMOUNT = 10000; // Fixed ₹10,000 token
+  const tokenAmount = bookingAmount || FIXED_TOKEN_AMOUNT;
   const remainingAmount = carPrice - tokenAmount;
 
   // Create Razorpay order
