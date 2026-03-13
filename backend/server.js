@@ -34,6 +34,7 @@ import testDriveRoutes from './src/routes/testDriveRoutes.js';
 import uploadRoutes from './src/routes/uploadRoutes.js';
 import adminRoutes from './src/routes/adminRoutes.js';
 import bookingRoutes from './src/routes/bookingRoutes.js';
+import contactRoutes from './src/routes/contactRoutes.js';
 
 // Initialize Express app
 const app = express();
@@ -122,6 +123,7 @@ app.use('/api/v1/test-drives', testDriveRoutes);
 app.use('/api/v1/upload', uploadRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/bookings', bookingRoutes);
+app.use('/api/v1/contact', contactRoutes);
 
 // ============ ERROR HANDLING ============
 

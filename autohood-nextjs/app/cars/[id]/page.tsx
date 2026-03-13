@@ -1,11 +1,12 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { carsAPI, api } from "@/lib/api";
 import Image from "next/image";
+import Link from "next/link";
 import Script from "next/script";
-import { Heart, Share2, MapPin, Fuel, Gauge, Calendar, Settings, ShoppingCart, X, CreditCard } from "lucide-react";
+import { Heart, Share2, MapPin, Fuel, Gauge, Calendar, Settings, ShoppingCart, X, CreditCard, Zap } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { useWishlistStore, useAuthStore, useCartStore } from "@/store/useStore";
 import toast from "react-hot-toast";
@@ -25,6 +26,19 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
   const { addItem: addToCart } = useCartStore();
   const car = carData?.data?.data;
   const inWishlist = car ? isInWishlist(car._id) : false;
+
+  // Get primary image or first image
+  const primaryImage = car?.images?.find((img: any) => img.isPrimary) || car?.images?.[0];
+  const mainImageUrl = primaryImage?.url || primaryImage || "/placeholder-car.jpg";
+
+  const [selectedImage, setSelectedImage] = useState<string>("");
+
+  // Update selected image when car data loads
+  useEffect(() => {
+    if (car && !selectedImage) {
+      setSelectedImage(mainImageUrl);
+    }
+  }, [car, mainImageUrl, selectedImage]);
 
   const handleWishlist = () => {
     if (!isAuthenticated) {
@@ -224,6 +238,14 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
   };
 
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [contactData, setContactData] = useState({
+    name: user?.name || "",
+    email: user?.email || "",
+    phone: "",
+    message: "",
+  });
+  const [contactLoading, setContactLoading] = useState(false);
 
   const handleShare = () => {
     if (navigator.share) {
@@ -238,12 +260,60 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
     }
   };
 
+  const handleContactDealer = () => {
+    if (!isAuthenticated) {
+      toast.error("Please login to contact dealer");
+      router.push("/login");
+      return;
+    }
+    setContactData({
+      name: user?.name || "",
+      email: user?.email || "",
+      phone: user?.phone || "",
+      message: `Hi, I'm interested in ${car.title}. Please provide more details.`,
+    });
+    setShowContactModal(true);
+  };
+
+  const submitContactDealer = async () => {
+    if (!contactData.name || !contactData.email || !contactData.phone || !contactData.message) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(contactData.phone)) {
+      toast.error("Phone number must be exactly 10 digits");
+      return;
+    }
+
+    setContactLoading(true);
+    try {
+      await api.post("/contact/dealer", {
+        carId: car._id,
+        dealerId: car.owner?._id,
+        customerName: contactData.name,
+        customerEmail: contactData.email,
+        customerPhone: contactData.phone,
+        message: contactData.message,
+        carTitle: car.title,
+      });
+      toast.success("Message sent to dealer successfully!");
+      setShowContactModal(false);
+      setContactData({ name: "", email: "", phone: "", message: "" });
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to send message");
+    } finally {
+      setContactLoading(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading car details...</p>
         </div>
       </div>
     );
@@ -252,108 +322,157 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
   if (!car) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-600">Car not found</p>
+        <div className="text-center">
+          <p className="text-xl font-semibold text-gray-900 mb-2">Car not found</p>
+          <p className="text-gray-600 mb-6">The car you're looking for doesn't exist</p>
+          <Link href="/cars" className="btn-primary">
+            Browse Cars
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container-custom py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="min-h-screen bg-white">
+      <div className="container-custom py-6 md:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2">
             {/* Image Gallery */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-              <div className="relative h-96">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+              <div className="relative h-[400px] md:h-[500px] bg-gray-100">
                 <Image
-                  src={car.images?.[0]?.url || car.images?.[0] || "/placeholder-car.jpg"}
+                  src={selectedImage || mainImageUrl}
                   alt={car.title}
                   fill
                   className="object-cover"
+                  priority
                 />
+                
+                {/* Badges on main image */}
+                <div className="absolute top-4 left-4 flex flex-col gap-2">
+                  {car.featured && (
+                    <span className="px-3 py-1.5 bg-gray-900 text-white text-xs font-semibold rounded-lg shadow-lg backdrop-blur-sm flex items-center gap-1.5">
+                      <Zap className="w-3.5 h-3.5" />
+                      Featured
+                    </span>
+                  )}
+                  {car.condition === "new" && (
+                    <span className="px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg shadow-lg backdrop-blur-sm">
+                      New
+                    </span>
+                  )}
+                  {car.verified && (
+                    <span className="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg shadow-lg backdrop-blur-sm">
+                      Verified
+                    </span>
+                  )}
+                </div>
               </div>
               {car.images?.length > 1 && (
-                <div className="grid grid-cols-4 gap-2 p-4">
-                  {car.images.slice(1, 5).map((img: any, idx: number) => (
-                    <div key={idx} className="relative h-24">
-                      <Image src={img?.url || img} alt={`${car.title} ${idx + 1}`} fill className="object-cover rounded" />
-                    </div>
-                  ))}
+                <div className="grid grid-cols-4 gap-3 p-4 bg-gray-50">
+                  {car.images.slice(0, 4).map((img: any, idx: number) => {
+                    const imgUrl = img?.url || img;
+                    const isSelected = selectedImage === imgUrl;
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedImage(imgUrl)}
+                        className={`relative h-20 md:h-24 rounded-xl overflow-hidden transition-all ${
+                          isSelected 
+                            ? "border-2 border-gray-900 ring-2 ring-gray-900 ring-offset-2" 
+                            : "border border-gray-200 hover:border-gray-400"
+                        }`}
+                      >
+                        <Image src={imgUrl} alt={`${car.title} ${idx + 1}`} fill className="object-cover" />
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
 
             {/* Details */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h1 className="text-3xl font-bold mb-2">{car.title}</h1>
-                  <div className="flex items-center text-gray-600">
-                    <MapPin className="w-4 h-4 mr-1" />
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+                <div className="flex-1">
+                  <div className="flex items-start gap-3 mb-3">
+                    {car.brand?.logo?.url && (
+                      <div className="w-12 h-12 bg-gray-50 rounded-xl border border-gray-200 p-2 flex-shrink-0">
+                        <Image
+                          src={car.brand.logo.url}
+                          alt={car.brand.name}
+                          width={48}
+                          height={48}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{car.title}</h1>
+                      {car.brand?.name && (
+                        <p className="text-sm text-gray-600 font-medium">{car.brand.name}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center text-gray-600 text-sm md:text-base">
+                    <MapPin className="w-4 h-4 mr-1.5 flex-shrink-0" />
                     <span>{car.location?.city}, {car.location?.state}</span>
                   </div>
                 </div>
-                <div className="flex space-x-2">
+                <div className="flex gap-2">
                   <button
                     onClick={handleWishlist}
-                    className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+                    className="w-10 h-10 flex items-center justify-center border border-gray-200 rounded-xl hover:bg-gray-50 active:scale-95 transition-all"
                   >
-                    <Heart className={`w-5 h-5 ${inWishlist ? "fill-red-500 text-red-500" : ""}`} />
+                    <Heart className={`w-5 h-5 ${inWishlist ? "fill-red-500 text-red-500" : "text-gray-600"}`} />
                   </button>
                   <button 
                     onClick={handleShare}
-                    className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+                    className="w-10 h-10 flex items-center justify-center border border-gray-200 rounded-xl hover:bg-gray-50 active:scale-95 transition-all"
                   >
-                    <Share2 className="w-5 h-5" />
+                    <Share2 className="w-5 h-5 text-gray-600" />
                   </button>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="flex items-center space-x-2">
-                  <Gauge className="w-5 h-5 text-gray-600" />
-                  <div>
-                    <p className="text-sm text-gray-500">KM Driven</p>
-                    <p className="font-semibold">{car.kmDriven?.toLocaleString() || car.mileage?.toLocaleString() || "N/A"} km</p>
-                  </div>
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <Gauge className="w-5 h-5 text-blue-600 mb-2" />
+                  <p className="text-xs text-gray-600 mb-1">KM Driven</p>
+                  <p className="font-bold text-gray-900">{car.kmDriven?.toLocaleString() || car.mileage?.toLocaleString() || "N/A"}</p>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Fuel className="w-5 h-5 text-gray-600" />
-                  <div>
-                    <p className="text-sm text-gray-500">Fuel Type</p>
-                    <p className="font-semibold capitalize">{car.fuelType || "N/A"}</p>
-                  </div>
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <Fuel className="w-5 h-5 text-green-600 mb-2" />
+                  <p className="text-xs text-gray-600 mb-1">Fuel Type</p>
+                  <p className="font-bold text-gray-900 capitalize">{car.fuelType || "N/A"}</p>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Settings className="w-5 h-5 text-gray-600" />
-                  <div>
-                    <p className="text-sm text-gray-500">Transmission</p>
-                    <p className="font-semibold capitalize">{car.transmission || "N/A"}</p>
-                  </div>
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <Settings className="w-5 h-5 text-purple-600 mb-2" />
+                  <p className="text-xs text-gray-600 mb-1">Transmission</p>
+                  <p className="font-bold text-gray-900 capitalize">{car.transmission || "N/A"}</p>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Calendar className="w-5 h-5 text-gray-600" />
-                  <div>
-                    <p className="text-sm text-gray-500">Year</p>
-                    <p className="font-semibold">{car.year || "N/A"}</p>
-                  </div>
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <Calendar className="w-5 h-5 text-orange-600 mb-2" />
+                  <p className="text-xs text-gray-600 mb-1">Year</p>
+                  <p className="font-bold text-gray-900">{car.year || "N/A"}</p>
                 </div>
               </div>
 
-              <div className="border-t pt-6">
-                <h2 className="text-xl font-semibold mb-4">Description</h2>
-                <p className="text-gray-600">{car.description || "No description available"}</p>
+              <div className="border-t border-gray-200 pt-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Description</h2>
+                <p className="text-gray-600 leading-relaxed">{car.description || "No description available"}</p>
               </div>
 
               {car.features && car.features.length > 0 && (
-                <div className="border-t pt-6 mt-6">
-                  <h2 className="text-xl font-semibold mb-4">Features</h2>
-                  <div className="grid grid-cols-2 gap-2">
+                <div className="border-t border-gray-200 pt-6 mt-6">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">Features</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {car.features.map((feature: string, idx: number) => (
-                      <div key={idx} className="flex items-center space-x-2">
-                        <div className="w-2 h-2 bg-primary rounded-full"></div>
-                        <span className="text-gray-700">{feature}</span>
+                      <div key={idx} className="flex items-center gap-3 text-gray-700">
+                        <div className="w-1.5 h-1.5 bg-gray-900 rounded-full flex-shrink-0"></div>
+                        <span>{feature}</span>
                       </div>
                     ))}
                   </div>
@@ -364,64 +483,64 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
 
           {/* Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6 sticky top-20">
-              <p className="text-3xl font-bold text-primary mb-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sticky top-20">
+              <p className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
                 {formatPrice(car.price)}
               </p>
 
               <div className="space-y-3">
                 <button 
                   onClick={handleBookCar}
-                  className="w-full py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2"
+                  className="w-full py-3.5 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm"
                 >
                   <CreditCard className="w-5 h-5" />
-                  <span>Book Now (₹10,000 Token)</span>
+                  <span>Book Now (₹10,000)</span>
                 </button>
                 <button 
                   onClick={handleAddToCart}
-                  className="w-full btn-primary flex items-center justify-center space-x-2"
+                  className="w-full py-3.5 bg-white border-2 border-gray-900 text-gray-900 rounded-xl font-semibold hover:bg-gray-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                 >
                   <ShoppingCart className="w-5 h-5" />
                   <span>Add to Cart</span>
                 </button>
                 <button 
                   onClick={handleBookTestDrive}
-                  className="w-full py-3 border-2 border-primary text-primary rounded-lg font-semibold hover:bg-primary/5 transition"
+                  className="w-full py-3.5 bg-white border border-gray-200 text-gray-900 rounded-xl font-semibold hover:bg-gray-50 active:scale-[0.98] transition-all"
                 >
                   Book Test Drive
                 </button>
                 <button 
-                  onClick={() => {
-                    if (!isAuthenticated) {
-                      toast.error("Please login to contact dealer");
-                      router.push("/login");
-                      return;
-                    }
-                    toast.success("Contact dealer feature coming soon!");
-                  }}
-                  className="w-full py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition"
+                  onClick={handleContactDealer}
+                  className="w-full py-3.5 bg-white border border-gray-200 text-gray-900 rounded-xl font-semibold hover:bg-gray-50 active:scale-[0.98] transition-all"
                 >
                   Contact Dealer
                 </button>
               </div>
 
-              <div className="mt-6 pt-6 border-t">
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                  <h3 className="font-semibold text-green-800 mb-2">Token Booking Available</h3>
-                  <p className="text-sm text-green-700">
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                  <h3 className="font-semibold text-green-900 mb-2 flex items-center gap-2">
+                    <CreditCard className="w-4 h-4" />
+                    Token Booking Available
+                  </h3>
+                  <p className="text-sm text-green-800 mb-2">
                     Book this car with just ₹10,000 token amount
                   </p>
-                  <p className="text-xs text-green-600 mt-2">
+                  <p className="text-xs text-green-700">
                     Remaining {formatPrice(car.price - 10000)} payable offline to dealer
                   </p>
                 </div>
               </div>
 
-              <div className="mt-6 pt-6 border-t">
-                <h3 className="font-semibold mb-3">Dealer Information</h3>
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h3 className="font-semibold text-gray-900 mb-2">Dealer Information</h3>
                 <p className="text-gray-600 text-sm">
                   {car.owner?.name || "Verified Dealer"}
                 </p>
+                <div className="mt-3 flex items-center gap-2 text-xs text-green-700 bg-green-50 px-3 py-2 rounded-lg">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span>Verified Dealer</span>
+                </div>
               </div>
             </div>
           </div>
@@ -733,6 +852,123 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
 
       {/* Load Razorpay Script */}
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+
+      {/* Contact Dealer Modal */}
+      {showContactModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-gray-900">Contact Dealer</h3>
+              <button
+                onClick={() => setShowContactModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+              <p className="text-sm font-semibold text-blue-900">{car.title}</p>
+              <p className="text-xs text-blue-700 mt-1">
+                Dealer: {car.owner?.name || "Verified Dealer"}
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Your Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={contactData.name}
+                  onChange={(e) =>
+                    setContactData({ ...contactData, name: e.target.value })
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="John Doe"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={contactData.email}
+                  onChange={(e) =>
+                    setContactData({ ...contactData, email: e.target.value })
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="your@email.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Phone Number <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="tel"
+                  required
+                  maxLength={10}
+                  value={contactData.phone}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    setContactData({ ...contactData, phone: value });
+                  }}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="9876543210"
+                />
+                <p className="text-xs text-gray-500 mt-1">Enter 10 digit mobile number</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Message <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  rows={4}
+                  required
+                  value={contactData.message}
+                  onChange={(e) =>
+                    setContactData({ ...contactData, message: e.target.value })
+                  }
+                  placeholder="Tell the dealer what you're looking for..."
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => setShowContactModal(false)}
+                  disabled={contactLoading}
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-xl font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={submitContactDealer}
+                  disabled={
+                    contactLoading ||
+                    !contactData.name ||
+                    !contactData.email ||
+                    !contactData.phone ||
+                    !contactData.message ||
+                    contactData.phone.length !== 10
+                  }
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {contactLoading ? "Sending..." : "Send Message"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

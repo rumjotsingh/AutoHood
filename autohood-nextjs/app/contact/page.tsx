@@ -1,10 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Mail, Phone, MapPin, Send, Clock, MessageSquare } from "lucide-react";
+import Head from "next/head";
 
 export default function ContactPage() {
+  useEffect(() => {
+    document.title = "Contact Us | AutoHood";
+  }, []);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",

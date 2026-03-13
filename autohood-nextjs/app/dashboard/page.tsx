@@ -1,51 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { authAPI, ordersAPI, carsAPI } from "@/lib/api";
-import { useAuthStore } from "@/store/useStore";
+import { api } from "@/lib/api";
+import { useAuthStore, useWishlistStore } from "@/store/useStore";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { 
-  User, 
-  ShoppingBag, 
+  Package, 
   Heart, 
   Car, 
-  Settings, 
-  LogOut,
-  Package,
-  Calendar,
-  TrendingUp,
-  DollarSign,
-  Eye,
-  Plus,
+  Plus, 
   Edit,
-  BarChart3
+  ShoppingBag,
+  TrendingUp,
+  Clock,
+  ArrowRight,
+  Calendar
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, isAuthenticated, logout } = useAuthStore();
-  const [activeTab, setActiveTab] = useState("overview");
-
-  const { data: userData } = useQuery({
-    queryKey: ["user-profile"],
-    queryFn: () => authAPI.getMe(),
-    enabled: isAuthenticated,
-  });
-
-  const { data: ordersData } = useQuery({
-    queryKey: ["my-orders"],
-    queryFn: () => ordersAPI.getMyOrders(),
-    enabled: isAuthenticated,
-  });
-
-  const { data: carsData } = useQuery({
-    queryKey: ["my-cars"],
-    queryFn: () => carsAPI.getAll(),
-    enabled: isAuthenticated && user?.role === "dealer",
-  });
+  const { isAuthenticated, user } = useAuthStore();
+  const wishlistItems = useWishlistStore((state) => state.items);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -53,392 +31,372 @@ export default function DashboardPage() {
     }
   }, [isAuthenticated, router]);
 
-  useEffect(() => {
-    if (isAuthenticated && user?.role === "admin") {
-      router.replace("/admin");
-    }
-  }, [isAuthenticated, router, user?.role]);
+  const { data: ordersData, isLoading: ordersLoading } = useQuery({
+    queryKey: ["my-orders"],
+    queryFn: () => api.get("/orders/my-orders"),
+    enabled: isAuthenticated,
+  });
 
-  const handleLogout = () => {
-    logout();
-    localStorage.removeItem("accessToken");
-    router.push("/");
-  };
+  const { data: carsData, isLoading: carsLoading } = useQuery({
+    queryKey: ["my-cars"],
+    queryFn: () => api.get("/cars", { params: { owner: user?._id } }),
+    enabled: isAuthenticated && (user?.role === "dealer" || user?.role === "admin"),
+  });
 
-  if (!isAuthenticated || user?.role === "admin") {
+  const { data: testDrivesData } = useQuery({
+    queryKey: ["my-test-drives-count"],
+    queryFn: () => api.get("/test-drives"),
+    enabled: isAuthenticated,
+  });
+
+  if (!isAuthenticated) {
     return null;
   }
 
-  const isDealer = user?.role === "dealer";
+  const orders = ordersData?.data?.data || [];
+  const cars = carsData?.data?.data || [];
+  const testDrives = testDrivesData?.data?.data || [];
+  const isDealer = user?.role === "dealer" || user?.role === "admin";
+
+  const stats = [
+    {
+      label: "Total Orders",
+      value: orders.length,
+      icon: Package,
+      gradient: "from-blue-500 to-cyan-500",
+      bgColor: "bg-blue-50",
+      iconColor: "text-blue-600",
+      link: "/orders",
+    },
+    {
+      label: "Wishlist",
+      value: wishlistItems.length,
+      icon: Heart,
+      gradient: "from-pink-500 to-rose-500",
+      bgColor: "bg-pink-50",
+      iconColor: "text-pink-600",
+      link: "/wishlist",
+    },
+    ...(!isDealer
+      ? [
+          {
+            label: "Test Drives",
+            value: testDrives.length,
+            icon: Calendar,
+            gradient: "from-purple-500 to-indigo-500",
+            bgColor: "bg-purple-50",
+            iconColor: "text-purple-600",
+            link: "/dashboard/test-drives",
+          },
+        ]
+      : []),
+    ...(isDealer
+      ? [
+          {
+            label: "My Listings",
+            value: cars.length,
+            icon: Car,
+            gradient: "from-green-500 to-emerald-500",
+            bgColor: "bg-green-50",
+            iconColor: "text-green-600",
+            link: "/dashboard/add-car",
+          },
+        ]
+      : []),
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50">
-      <div className="container-custom py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="lg:col-span-1"
-          >
-            <div className="glass-card rounded-2xl shadow-xl p-6 sticky top-24">
-              <div className="flex items-center space-x-3 mb-6 pb-6 border-b border-white/20">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg">
-                  {user?.name?.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg text-gray-800">{user?.name}</h3>
-                  <p className="text-sm text-gray-600">{user?.email}</p>
-                  <span className="inline-block mt-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
-                    {user?.role}
-                  </span>
-                </div>
-              </div>
-
-              <nav className="space-y-2">
-                <button
-                  onClick={() => setActiveTab("overview")}
-                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-                    activeTab === "overview"
-                      ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg"
-                      : "hover:bg-white/50 text-gray-700"
-                  }`}
-                >
-                  <BarChart3 className="w-5 h-5" />
-                  <span className="font-medium">Overview</span>
-                </button>
-                <Link
-                  href="/orders"
-                  className="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white/50 text-gray-700 transition-all"
-                >
-                  <ShoppingBag className="w-5 h-5" />
-                  <span className="font-medium">My Orders</span>
-                </Link>
-                <Link
-                  href="/wishlist"
-                  className="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white/50 text-gray-700 transition-all"
-                >
-                  <Heart className="w-5 h-5" />
-                  <span className="font-medium">Wishlist</span>
-                </Link>
-                {isDealer && (
-                  <>
-                    <button
-                      onClick={() => setActiveTab("listings")}
-                      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-                        activeTab === "listings"
-                          ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg"
-                          : "hover:bg-white/50 text-gray-700"
-                      }`}
-                    >
-                      <Car className="w-5 h-5" />
-                      <span className="font-medium">My Listings</span>
-                    </button>
-                    <Link
-                      href="/dealer/orders"
-                      className="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white/50 text-gray-700 transition-all"
-                    >
-                      <ShoppingBag className="w-5 h-5" />
-                      <span className="font-medium">Manage Orders</span>
-                    </Link>
-                    <Link
-                      href="/dealer/test-drives"
-                      className="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white/50 text-gray-700 transition-all"
-                    >
-                      <Calendar className="w-5 h-5" />
-                      <span className="font-medium">Test Drives</span>
-                    </Link>
-                    <Link
-                      href="/dashboard/add-car"
-                      className="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white/50 text-gray-700 transition-all"
-                    >
-                      <Plus className="w-5 h-5" />
-                      <span className="font-medium">Add New Car</span>
-                    </Link>
-                  </>
-                )}
-                <Link
-                  href="/dashboard/settings"
-                  className="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white/50 text-gray-700 transition-all"
-                >
-                  <Settings className="w-5 h-5" />
-                  <span className="font-medium">Settings</span>
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-red-50 text-red-600 transition-all"
-                >
-                  <LogOut className="w-5 h-5" />
-                  <span className="font-medium">Logout</span>
-                </button>
-              </nav>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="container-custom py-6 md:py-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">
+                Welcome back, {user?.name?.split(" ")[0]}! 👋
+              </h1>
+              <p className="text-gray-600 text-sm md:text-base">
+                Here's what's happening with your account
+              </p>
             </div>
-          </motion.div>
-
-          {/* Main Content */}
-          <div className="lg:col-span-3">
-            {activeTab === "overview" && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-6"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                      Welcome back, {user?.name?.split(' ')[0]}!
-                    </h1>
-                    <p className="text-gray-600 mt-2">Here's what's happening with your account</p>
-                  </div>
-                </div>
-
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="glass-card p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all hover:scale-105"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-gray-600 text-sm mb-1 font-medium">Total Orders</p>
-                        <p className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                          {ordersData?.data?.pagination?.totalItems || 0}
-                        </p>
-                        <p className="text-xs text-green-600 mt-2 flex items-center">
-                          <TrendingUp className="w-3 h-3 mr-1" />
-                          +12% from last month
-                        </p>
-                      </div>
-                      <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-lg">
-                        <ShoppingBag className="w-7 h-7 text-white" />
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="glass-card p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all hover:scale-105"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-gray-600 text-sm mb-1 font-medium">Wishlist Items</p>
-                        <p className="text-4xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">
-                          {userData?.data?.data?.wishlist?.length || 0}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-2">Saved for later</p>
-                      </div>
-                      <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
-                        <Heart className="w-7 h-7 text-white" />
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="glass-card p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all hover:scale-105"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-gray-600 text-sm mb-1 font-medium">
-                          {isDealer ? "Active Listings" : "Total Spent"}
-                        </p>
-                        <p className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                          {isDealer ? (carsData?.data?.pagination?.totalItems || 0) : "₹0"}
-                        </p>
-                        <p className="text-xs text-green-600 mt-2 flex items-center">
-                          <TrendingUp className="w-3 h-3 mr-1" />
-                          {isDealer ? "Live on platform" : "This month"}
-                        </p>
-                      </div>
-                      <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg">
-                        {isDealer ? <Car className="w-7 h-7 text-white" /> : <DollarSign className="w-7 h-7 text-white" />}
-                      </div>
-                    </div>
-                  </motion.div>
-                </div>
-
-                {/* Recent Activity */}
-                <div className="glass-card rounded-2xl shadow-xl p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-gray-800">Recent Orders</h2>
-                    <Link href="/orders" className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center">
-                      View All
-                      <TrendingUp className="w-4 h-4 ml-1" />
-                    </Link>
-                  </div>
-                  {ordersData?.data?.data && ordersData.data.data.length > 0 ? (
-                    <div className="space-y-4">
-                      {ordersData.data.data.slice(0, 5).map((order: any) => (
-                        <motion.div
-                          key={order._id}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          className="flex items-center justify-between p-4 bg-white/50 border border-white/20 rounded-xl hover:shadow-lg transition-all"
-                        >
-                          <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-xl flex items-center justify-center">
-                              <Package className="w-6 h-6 text-blue-600" />
-                            </div>
-                            <div>
-                              <p className="font-semibold text-gray-800">Order #{order.orderNumber}</p>
-                              <p className="text-sm text-gray-600">
-                                {new Date(order.createdAt).toLocaleDateString('en-US', { 
-                                  month: 'short', 
-                                  day: 'numeric', 
-                                  year: 'numeric' 
-                                })}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-bold text-gray-800">
-                              ₹{order.pricing?.total?.toLocaleString()}
-                            </p>
-                            <span
-                              className={`text-xs px-3 py-1 rounded-full font-medium ${
-                                order.orderStatus === "delivered"
-                                  ? "bg-green-100 text-green-700"
-                                  : order.orderStatus === "processing"
-                                  ? "bg-blue-100 text-blue-700"
-                                  : "bg-yellow-100 text-yellow-700"
-                              }`}
-                            >
-                              {order.orderStatus}
-                            </span>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12">
-                      <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Package className="w-10 h-10 text-gray-400" />
-                      </div>
-                      <p className="text-gray-500 mb-4">No orders yet</p>
-                      <Link href="/cars" className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl hover:shadow-lg transition-all">
-                        Start Shopping
-                        <TrendingUp className="w-4 h-4 ml-2" />
-                      </Link>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            )}
-
-            {activeTab === "listings" && isDealer && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-6"
-              >
-                <div className="flex items-center justify-between">
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                    My Listings
-                  </h1>
-                  <Link
-                    href="/dashboard/add-car"
-                    className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl hover:shadow-lg transition-all"
-                  >
-                    <Plus className="w-5 h-5 mr-2" />
-                    Add New Car
-                  </Link>
-                </div>
-
-                {carsData?.data?.data?.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {carsData?.data?.data?.map((car: any) => (
-                      <motion.div
-                        key={car._id}
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="glass-card rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all"
-                      >
-                        <div className="relative h-48 bg-gradient-to-br from-gray-200 to-gray-300">
-                          {car.images?.[0]?.url && (
-                            <img
-                              src={car.images[0].url}
-                              alt={car.title}
-                              className="w-full h-full object-cover"
-                            />
-                          )}
-                          <div className="absolute top-4 right-4 flex space-x-2">
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              car.status === 'active' 
-                                ? 'bg-green-500 text-white' 
-                                : 'bg-gray-500 text-white'
-                            }`}>
-                              {car.status}
-                            </span>
-                            {car.featured && (
-                              <span className="px-3 py-1 bg-yellow-500 text-white rounded-full text-xs font-medium">
-                                Featured
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="p-6">
-                          <h3 className="text-xl font-bold text-gray-800 mb-2">{car.title}</h3>
-                          <div className="flex items-center justify-between mb-4">
-                            <p className="text-2xl font-bold text-blue-600">
-                              ₹{car.price?.toLocaleString()}
-                            </p>
-                            <div className="flex items-center space-x-1 text-sm text-gray-600">
-                              <Eye className="w-4 h-4" />
-                              <span>{car.stats?.views || 0} views</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2 text-sm text-gray-600 mb-4">
-                            <span>{car.year}</span>
-                            <span>•</span>
-                            <span>{car.kmDriven?.toLocaleString()} km</span>
-                            <span>•</span>
-                            <span className="capitalize">{car.fuelType}</span>
-                          </div>
-                          <div className="flex space-x-2">
-                            <Link
-                              href={`/cars/${car._id}`}
-                              className="flex-1 px-4 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors text-center font-medium"
-                            >
-                              View
-                            </Link>
-                            <Link
-                              href={`/dashboard/edit-car/${car._id}`}
-                              className="flex-1 px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors text-center font-medium flex items-center justify-center"
-                            >
-                              <Edit className="w-4 h-4 mr-1" />
-                              Edit
-                            </Link>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="glass-card rounded-2xl shadow-xl p-12 text-center">
-                    <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Car className="w-10 h-10 text-gray-400" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">No listings yet</h3>
-                    <p className="text-gray-600 mb-6">Start by adding your first car to the platform</p>
-                    <Link
-                      href="/dashboard/add-car"
-                      className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl hover:shadow-lg transition-all"
-                    >
-                      <Plus className="w-5 h-5 mr-2" />
-                      Add Your First Car
-                    </Link>
-                  </div>
-                )}
-              </motion.div>
+            {isDealer && (
+              <Link href="/dashboard/add-car" className="btn-primary">
+                <Plus className="w-4 h-4 mr-2" />
+                Add New Car
+              </Link>
             )}
           </div>
         </div>
+      </div>
+
+      <div className="container-custom py-6 md:py-8">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+          {stats.map((stat, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <Link
+                href={stat.link || "#"}
+                className="block bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-md active:scale-[0.98] transition-all"
+              >
+                <div className={`w-12 h-12 rounded-xl ${stat.bgColor} flex items-center justify-center mb-4`}>
+                  <stat.icon className={`w-6 h-6 ${stat.iconColor}`} />
+                </div>
+                <div className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</div>
+                <div className="text-sm text-gray-600">{stat.label}</div>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Quick Actions - Dealer Only */}
+        {isDealer && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mb-8"
+          >
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5" />
+              Quick Actions
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Link
+                href="/dashboard/add-car"
+                className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:-translate-y-1 transition-all group"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                    <Plus className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900 mb-1">Add New Car</div>
+                    <div className="text-sm text-gray-600">List a new vehicle for sale</div>
+                  </div>
+                  <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-gray-900 group-hover:translate-x-1 transition-all" />
+                </div>
+              </Link>
+              <Link
+                href="/dealer/orders"
+                className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:-translate-y-1 transition-all group"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                    <Package className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900 mb-1">Manage Orders</div>
+                    <div className="text-sm text-gray-600">View and process orders</div>
+                  </div>
+                  <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-gray-900 group-hover:translate-x-1 transition-all" />
+                </div>
+              </Link>
+              <Link
+                href="/dealer/inquiries"
+                className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:-translate-y-1 transition-all group"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                    <ShoppingBag className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900 mb-1">View Inquiries</div>
+                    <div className="text-sm text-gray-600">Customer inquiries</div>
+                  </div>
+                  <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-gray-900 group-hover:translate-x-1 transition-all" />
+                </div>
+              </Link>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Recent Orders */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mb-8"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <Clock className="w-5 h-5" />
+              Recent Orders
+            </h2>
+            {orders.length > 0 && (
+              <Link href="/orders" className="text-sm font-medium text-gray-600 hover:text-gray-900 flex items-center gap-1">
+                View all
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            )}
+          </div>
+          {ordersLoading ? (
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 animate-pulse">
+                  <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              ))}
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 md:p-12 text-center">
+              <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No orders yet</h3>
+              <p className="text-gray-600 mb-6">Start shopping for cars and parts</p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Link href="/cars" className="btn-primary">
+                  Browse Cars
+                </Link>
+                <Link href="/parts" className="btn-secondary">
+                  Browse Parts
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {orders.slice(0, 3).map((order: any, index: number) => (
+                <motion.div
+                  key={order._id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all"
+                >
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="font-semibold text-gray-900">
+                          Order #{order.orderNumber || order._id.slice(-8)}
+                        </div>
+                        <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+                          order.orderStatus === "delivered"
+                            ? "bg-green-100 text-green-700"
+                            : order.orderStatus === "pending"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : order.orderStatus === "shipped"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-gray-100 text-gray-700"
+                        }`}>
+                          {order.orderStatus}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {new Date(order.createdAt).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-gray-900">
+                          ₹{(order.pricing?.total || order.totalAmount)?.toLocaleString()}
+                        </div>
+                        <div className="text-xs text-gray-600 capitalize">{order.orderType}</div>
+                      </div>
+                      <Link
+                        href="/orders"
+                        className="btn-secondary text-sm"
+                      >
+                        View
+                      </Link>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </motion.div>
+
+        {/* My Listings (Dealer Only) */}
+        {isDealer && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <Car className="w-5 h-5" />
+                My Listings
+              </h2>
+              {cars.length > 0 && (
+                <Link href="/dashboard/add-car" className="text-sm font-medium text-gray-600 hover:text-gray-900 flex items-center gap-1">
+                  Add new
+                  <Plus className="w-4 h-4" />
+                </Link>
+              )}
+            </div>
+            {carsLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden animate-pulse">
+                    <div className="aspect-video bg-gray-200"></div>
+                    <div className="p-4">
+                      <div className="h-5 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : cars.length === 0 ? (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 md:p-12 text-center">
+                <Car className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No listings yet</h3>
+                <p className="text-gray-600 mb-6">Start selling by adding your first car</p>
+                <Link href="/dashboard/add-car" className="btn-primary">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Your First Car
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {cars.slice(0, 6).map((car: any, index: number) => (
+                  <motion.div
+                    key={car._id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all group"
+                  >
+                    <div className="aspect-video bg-gray-100 relative overflow-hidden">
+                      {car.images?.[0] ? (
+                        <img
+                          src={car.images[0]?.url || car.images[0]}
+                          alt={car.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Car className="w-12 h-12 text-gray-300" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <div className="font-semibold text-gray-900 mb-1 truncate">{car.title}</div>
+                      <div className="text-lg font-bold text-gray-900 mb-3">
+                        ₹{car.price?.toLocaleString()}
+                      </div>
+                      <Link
+                        href={`/dashboard/edit-car/${car._id}`}
+                        className="w-full btn-secondary text-sm flex items-center justify-center"
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Edit Listing
+                      </Link>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
       </div>
     </div>
   );

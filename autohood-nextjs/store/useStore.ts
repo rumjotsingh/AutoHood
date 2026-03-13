@@ -1,8 +1,9 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface User {
-  id: string;
+  _id?: string;
+  id?: string;
   name: string;
   email: string;
   role: string;
@@ -21,8 +22,12 @@ interface CartItem {
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
+  token: string | null;
   setUser: (user: User | null) => void;
+  setToken: (token: string | null) => void;
   logout: () => void;
+  hydrated: boolean;
+  setHydrated: () => void;
 }
 
 interface CartState {
@@ -46,12 +51,27 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       isAuthenticated: false,
+      token: null,
+      hydrated: false,
       setUser: (user) => set({ user, isAuthenticated: !!user }),
-      logout: () => set({ user: null, isAuthenticated: false }),
+      setToken: (token) => set({ token }),
+      logout: () => {
+        set({ user: null, isAuthenticated: false, token: null });
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('accessToken');
+          // Clear cart and wishlist on logout
+          useCartStore.getState().clearCart();
+          useWishlistStore.setState({ items: [] });
+        }
+      },
+      setHydrated: () => set({ hydrated: true }),
     }),
     {
       name: 'auth-storage',
-      skipHydration: true,
+      storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => (state) => {
+        state?.setHydrated();
+      },
     }
   )
 );
@@ -93,7 +113,7 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: 'cart-storage',
-      skipHydration: true,
+      storage: createJSONStorage(() => localStorage),
     }
   )
 );
@@ -114,7 +134,7 @@ export const useWishlistStore = create<WishlistState>()(
     }),
     {
       name: 'wishlist-storage',
-      skipHydration: true,
+      storage: createJSONStorage(() => localStorage),
     }
   )
 );

@@ -1,51 +1,73 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { carsAPI } from "@/lib/api";
-import { useWishlistStore } from "@/store/useStore";
+import { useAuthStore, useWishlistStore } from "@/store/useStore";
 import CarCard from "@/components/CarCard";
-import { Heart } from "lucide-react";
+import { Heart, ShoppingBag } from "lucide-react";
+import Link from "next/link";
 
 export default function WishlistPage() {
-  const wishlistItems = useWishlistStore((state) => state.items);
+  const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
+  const { items } = useWishlistStore();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push("/login");
+    }
+  }, [isAuthenticated, router]);
 
   const { data: carsData, isLoading } = useQuery({
-    queryKey: ["wishlist-cars", wishlistItems],
+    queryKey: ["wishlist-cars", items],
     queryFn: async () => {
-      if (wishlistItems.length === 0) return { data: { data: [] } };
-      const promises = wishlistItems.map((id) => carsAPI.getById(id));
+      if (items.length === 0) return { data: { data: [] } };
+      const promises = items.map((id) => carsAPI.getById(id));
       const results = await Promise.all(promises);
       return { data: { data: results.map((r) => r.data.data) } };
     },
-    enabled: wishlistItems.length > 0,
+    enabled: isAuthenticated && items.length > 0,
   });
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  const cars = carsData?.data?.data || [];
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container-custom py-8">
-        <div className="flex items-center space-x-3 mb-6">
-          <Heart className="w-8 h-8 text-primary" />
-          <h1 className="text-3xl font-bold">My Wishlist</h1>
+      <div className="container-custom py-8 md:py-12">
+        <div className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">My Wishlist</h1>
+          <p className="text-gray-600">
+            {items.length} {items.length === 1 ? "item" : "items"} saved
+          </p>
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white rounded-lg shadow-md h-80 animate-pulse" />
+              <div key={i} className="card h-80 animate-pulse bg-gray-100"></div>
             ))}
           </div>
-        ) : wishlistItems.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-12 text-center">
-            <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold mb-2">Your wishlist is empty</h2>
-            <p className="text-gray-600 mb-6">Start adding cars you love!</p>
-            <a href="/cars" className="btn-primary inline-block">
-              Browse Cars
-            </a>
+        ) : items.length === 0 ? (
+          <div className="card p-12 md:p-20 text-center">
+            <Heart className="w-16 h-16 text-gray-300 mx-auto mb-6" />
+            <h2 className="text-2xl font-bold mb-3">Your wishlist is empty</h2>
+            <p className="text-gray-600 mb-8 max-w-md mx-auto">
+              Start adding cars you love to your wishlist and come back to them later
+            </p>
+            <Link href="/cars" className="btn-primary inline-flex items-center gap-2">
+              <ShoppingBag className="w-4 h-4" />
+              Browse cars
+            </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {carsData?.data?.data?.map((car: any) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {cars.map((car: any) => (
               <CarCard key={car._id} car={car} />
             ))}
           </div>

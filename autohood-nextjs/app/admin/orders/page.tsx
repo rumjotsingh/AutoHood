@@ -66,28 +66,24 @@ export default function AdminOrdersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
-      <div className="container-custom py-8">
+    <div className="min-h-screen bg-white">
+      <div className="container-custom py-6 md:py-8 pb-20 md:pb-8">
         <Link
           href="/admin"
-          className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
+          className="inline-flex items-center text-gray-900 hover:text-gray-700 mb-4 text-sm font-medium"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Dashboard
         </Link>
 
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-              Order Management
-            </h1>
-            <p className="text-gray-600 mt-2">Manage all customer orders</p>
-          </div>
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-4xl font-bold mb-2">Order Management</h1>
+          <p className="text-sm md:text-base text-gray-600">Manage all customer orders</p>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-gray-50 rounded-2xl p-4 md:p-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
@@ -95,13 +91,13 @@ export default function AdminOrdersPage() {
                 placeholder="Search by order number..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white text-sm"
               />
             </div>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white text-sm"
             >
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
@@ -114,97 +110,166 @@ export default function AdminOrdersPage() {
           </div>
         </div>
 
-        {/* Orders Table */}
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          {isLoading ? (
-            <div className="p-12 text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            </div>
-          ) : orders.length === 0 ? (
-            <div className="p-12 text-center">
-              <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600">No orders found</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Order #</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Customer</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Type</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Total</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Payment</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Status</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Date</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {orders.map((order: any) => (
-                    <tr key={order._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4">
-                        <span className="font-mono font-semibold text-blue-600">
-                          {order.orderNumber}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div>
-                          <div className="font-medium text-gray-800">{order.user?.name}</div>
-                          <div className="text-sm text-gray-500">{order.user?.email}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm capitalize">
-                          {order.orderType}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 font-semibold text-gray-800">
-                        {formatPrice(order.pricing?.total || 0)}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-sm ${
-                          order.paymentStatus === "paid"
-                            ? "bg-green-100 text-green-700"
-                            : order.paymentStatus === "pending"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-red-100 text-red-700"
-                        }`}>
-                          {order.paymentStatus}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <select
-                          value={order.orderStatus || order.status}
-                          onChange={(e) => updateStatusMutation.mutate({ orderId: order._id, status: e.target.value })}
-                          className={`px-3 py-1 rounded-full text-sm font-medium border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 ${getStatusColor(order.orderStatus || order.status)}`}
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="confirmed">Confirmed</option>
-                          <option value="processing">Processing</option>
-                          <option value="shipped">Shipped</option>
-                          <option value="delivered">Delivered</option>
-                          <option value="cancelled">Cancelled</option>
-                        </select>
-                      </td>
-                      <td className="px-6 py-4 text-gray-600 text-sm">
+        {/* Orders List */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+          </div>
+        ) : orders.length === 0 ? (
+          <div className="text-center py-20">
+            <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-600">No orders found</p>
+          </div>
+        ) : (
+          <>
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-4">
+              {orders.map((order: any) => (
+                <div key={order._id} className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <p className="font-mono font-semibold text-gray-900 text-sm mb-1">
+                        {order.orderNumber}
+                      </p>
+                      <p className="text-xs text-gray-500">
                         {new Date(order.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4">
-                        <button
-                          onClick={() => router.push(`/orders/${order._id}`)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        >
-                          <Eye className="w-5 h-5" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </p>
+                    </div>
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                      order.paymentStatus === "paid"
+                        ? "bg-green-100 text-green-700"
+                        : order.paymentStatus === "pending"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : "bg-red-100 text-red-700"
+                    }`}>
+                      {order.paymentStatus}
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-2 mb-3">
+                    <div>
+                      <p className="text-xs text-gray-500">Customer</p>
+                      <p className="font-medium text-sm text-gray-900">{order.user?.name}</p>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-gray-500">Total</p>
+                        <p className="font-bold text-gray-900">{formatPrice(order.pricing?.total || 0)}</p>
+                      </div>
+                      <span className="px-2.5 py-1 bg-gray-100 text-gray-700 rounded-full text-xs capitalize">
+                        {order.orderType}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <select
+                      value={order.orderStatus || order.status}
+                      onChange={(e) => updateStatusMutation.mutate({ orderId: order._id, status: e.target.value })}
+                      className={`w-full px-3 py-2 rounded-lg text-sm font-medium border-0 focus:outline-none focus:ring-2 focus:ring-gray-900 ${getStatusColor(order.orderStatus || order.status)}`}
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="confirmed">Confirmed</option>
+                      <option value="processing">Processing</option>
+                      <option value="shipped">Shipped</option>
+                      <option value="delivered">Delivered</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                    
+                    <button
+                      onClick={() => router.push(`/orders/${order._id}`)}
+                      className="w-full px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 active:scale-95 transition-all flex items-center justify-center gap-2"
+                    >
+                      <Eye className="w-4 h-4" />
+                      View Details
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-          )}
-        </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Order #</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Customer</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Type</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Total</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Payment</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Status</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Date</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {orders.map((order: any) => (
+                      <tr key={order._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4">
+                          <span className="font-mono font-semibold text-gray-900">
+                            {order.orderNumber}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div>
+                            <div className="font-medium text-gray-800">{order.user?.name}</div>
+                            <div className="text-sm text-gray-500">{order.user?.email}</div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm capitalize">
+                            {order.orderType}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 font-semibold text-gray-800">
+                          {formatPrice(order.pricing?.total || 0)}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`px-3 py-1 rounded-full text-sm ${
+                            order.paymentStatus === "paid"
+                              ? "bg-green-100 text-green-700"
+                              : order.paymentStatus === "pending"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-red-100 text-red-700"
+                          }`}>
+                            {order.paymentStatus}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <select
+                            value={order.orderStatus || order.status}
+                            onChange={(e) => updateStatusMutation.mutate({ orderId: order._id, status: e.target.value })}
+                            className={`px-3 py-1 rounded-full text-sm font-medium border-0 focus:outline-none focus:ring-2 focus:ring-gray-900 ${getStatusColor(order.orderStatus || order.status)}`}
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="processing">Processing</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
+                        </td>
+                        <td className="px-6 py-4 text-gray-600 text-sm">
+                          {new Date(order.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4">
+                          <button
+                            onClick={() => router.push(`/orders/${order._id}`)}
+                            className="p-2 text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                          >
+                            <Eye className="w-5 h-5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

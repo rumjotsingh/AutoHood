@@ -168,28 +168,44 @@ export const createRazorpayOrder = asyncHandler(async (req, res) => {
 export const verifyRazorpayPayment = asyncHandler(async (req, res) => {
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
+  console.log('🔐 Verifying Razorpay payment...');
+  console.log('   Order ID:', razorpay_order_id);
+  console.log('   Payment ID:', razorpay_payment_id);
+  console.log('   Signature:', razorpay_signature);
+
+  // Generate expected signature using HMAC SHA256
   const sign = razorpay_order_id + '|' + razorpay_payment_id;
   const expectedSign = crypto
-    .createHash('sha256')
+    .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
     .update(sign)
     .digest('hex');
 
+  console.log('   Expected signature:', expectedSign);
+  console.log('   Received signature:', razorpay_signature);
+  console.log('   Match:', expectedSign === razorpay_signature);
+
   if (razorpay_signature !== expectedSign) {
+    console.error('❌ Payment signature verification failed');
     return res.status(400).json({
       success: false,
       message: 'Invalid payment signature',
     });
   }
 
+  console.log('✅ Payment signature verified');
+
   // Find payment
   const payment = await Payment.findOne({ gatewayOrderId: razorpay_order_id });
 
   if (!payment) {
+    console.error('❌ Payment record not found for order:', razorpay_order_id);
     return res.status(404).json({
       success: false,
       message: 'Payment not found',
     });
   }
+
+  console.log('✅ Payment record found:', payment._id);
 
   // Update payment
   payment.status = 'completed';

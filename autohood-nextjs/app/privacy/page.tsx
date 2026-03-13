@@ -1,9 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useEffect } from "react";
 import { Shield, Lock, Eye, FileText, UserCheck, Database } from "lucide-react";
 
 export default function PrivacyPage() {
+  useEffect(() => {
+    document.title = "Privacy Policy | AutoHood";
+  }, []);
+
   const sections = [
     {
       icon: Database,

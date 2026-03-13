@@ -1,10 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HelpCircle, ChevronDown, Search, MessageCircle, Book, Shield, CreditCard, Truck } from "lucide-react";
 
 export default function HelpPage() {
+  useEffect(() => {
+    document.title = "Help Center | AutoHood";
+  }, []);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 

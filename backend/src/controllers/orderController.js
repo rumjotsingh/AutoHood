@@ -201,6 +201,69 @@ export const cancelOrder = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Download invoice
+// @route   GET /api/v1/orders/:id/invoice
+// @access  Private
+export const downloadInvoice = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id)
+    .populate('user', 'name email phone')
+    .populate('car', 'title price')
+    .populate('items.part', 'name price')
+    .populate('invoice');
+
+  if (!order) {
+    return res.status(404).json({
+      success: false,
+      message: 'Order not found',
+    });
+  }
+
+  // Check if user owns this order or is admin
+  if (order.user._id.toString() !== req.user.id && req.user.role !== 'admin') {
+    return res.status(403).json({
+      success: false,
+      message: 'Not authorized to access this invoice',
+    });
+  }
+
+  // For now, return invoice data as JSON
+  // In production, you would generate a PDF here
+  const invoiceData = {
+    invoiceNumber: order.invoice?.invoiceNumber || order.orderNumber,
+    orderNumber: order.orderNumber,
+    date: order.createdAt,
+    customer: {
+      name: order.user.name,
+      email: order.user.email,
+      phone: order.user.phone,
+    },
+    billingAddress: order.billingAddress,
+    shippingAddress: order.shippingAddress,
+    items: order.orderType === 'car' 
+      ? [{
+          name: order.car?.title,
+          quantity: 1,
+          price: order.car?.price,
+          subtotal: order.car?.price,
+        }]
+      : order.items.map(item => ({
+          name: item.part?.name || item.name,
+          quantity: item.quantity,
+          price: item.price,
+          subtotal: item.subtotal,
+        })),
+    pricing: order.pricing,
+    paymentMethod: order.paymentMethod,
+    paymentStatus: order.paymentStatus,
+    orderStatus: order.orderStatus,
+  };
+
+  res.json({
+    success: true,
+    data: invoiceData,
+  });
+});
+
 export default {
   createOrder,
   getAllOrders,
@@ -208,4 +271,5 @@ export default {
   getMyOrders,
   updateOrderStatus,
   cancelOrder,
+  downloadInvoice,
 };

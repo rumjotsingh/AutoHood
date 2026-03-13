@@ -1,9 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useEffect } from "react";
 import { FileText, Shield, AlertCircle, Scale, UserCheck, Ban } from "lucide-react";
 
 export default function TermsPage() {
+  useEffect(() => {
+    document.title = "Terms & Conditions | AutoHood";
+  }, []);
+
   const sections = [
     {
       icon: UserCheck,

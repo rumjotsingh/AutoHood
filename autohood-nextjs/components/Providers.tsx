@@ -1,11 +1,14 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { Toaster } from "react-hot-toast";
-import { useAuthStore, useCartStore, useWishlistStore } from "@/store/useStore";
+import AuthInit from "./AuthInit";
+import { trackPageView } from "@/lib/analytics";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
@@ -15,24 +18,27 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     },
   }));
 
+  // Track page views
   useEffect(() => {
-    useAuthStore.persist.rehydrate();
-    useCartStore.persist.rehydrate();
-    useWishlistStore.persist.rehydrate();
-  }, []);
+    if (pathname) {
+      trackPageView(pathname, document.title);
+    }
+  }, [pathname]);
 
   return (
     <QueryClientProvider client={queryClient}>
+      <AuthInit />
       <Toaster
         position="top-right"
         toastOptions={{
           duration: 3000,
           style: {
             background: '#fff',
-            color: '#363636',
+            color: '#1f2937',
             padding: '16px',
             borderRadius: '12px',
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+            border: '1px solid #e5e7eb',
           },
           success: {
             iconTheme: {
