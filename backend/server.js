@@ -66,12 +66,14 @@ app.use(helmet({
 const corsOptions = {
   origin: [
     process.env.FRONTEND_URL,
-    'https://auto-hood.vercel.app/',
+    'https://auto-hood.vercel.app',
     'http://localhost:5173',
     'http://localhost:3000',
   ].filter(Boolean),
   credentials: true,
   optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 };
 app.use(cors(corsOptions));
 
