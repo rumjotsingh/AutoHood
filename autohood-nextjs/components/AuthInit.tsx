@@ -17,7 +17,7 @@ export default function AuthInit() {
       if (token) {
         try {
           // Verify token and get user data
-          const response = await authAPI.getProfile();
+          const response = await authAPI.getMe();
           if (response.data?.data) {
             setUser(response.data.data);
             setToken(token);
