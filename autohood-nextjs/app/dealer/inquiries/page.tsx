@@ -71,7 +71,7 @@ export default function DealerInquiriesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
-      <div className="container-custom py-8">
+      <div className="container-custom py-8 pb-20 md:pb-8">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
@@ -234,8 +234,8 @@ export default function DealerInquiriesPage() {
 
       {/* Response Modal */}
       {selectedInquiry && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 my-8">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold text-gray-900">Respond to Inquiry</h3>
               <button

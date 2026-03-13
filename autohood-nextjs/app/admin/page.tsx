@@ -63,7 +63,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="container-custom py-6 md:py-12">
+      <div className="container-custom py-6 md:py-12 pb-20 md:pb-8">
         <div className="mb-6 md:mb-8">
           <h1 className="text-2xl md:text-4xl font-bold mb-2">Admin Dashboard</h1>
           <p className="text-sm md:text-base text-gray-600">Manage your platform</p>

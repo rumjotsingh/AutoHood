@@ -251,7 +251,7 @@ export default function EditCarPage({ params }: { params: Promise<{ id: string }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
-      <div className="container-custom py-8">
+      <div className="container-custom py-8 pb-20 md:pb-8">
         <div className="mb-6">
           <Link
             href="/dashboard"

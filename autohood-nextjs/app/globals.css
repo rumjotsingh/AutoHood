@@ -50,6 +50,16 @@
   .safe-area-top {
     padding-top: env(safe-area-inset-top);
   }
+  
+  /* Mobile page padding to prevent bottom nav overlap */
+  .mobile-page-padding {
+    @apply pb-20 md:pb-8;
+  }
+  
+  /* Modal z-index above bottom nav */
+  .modal-overlay {
+    z-index: 60;
+  }
 }
 
 @layer components {

@@ -52,7 +52,7 @@ export default function DealerTestDrivesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
-      <div className="container-custom py-8">
+      <div className="container-custom py-8 pb-20 md:pb-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
             Test Drive Bookings

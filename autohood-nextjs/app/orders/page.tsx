@@ -221,7 +221,7 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      <div className="container-custom py-6 md:py-8">
+      <div className="container-custom py-6 md:py-8 pb-20 md:pb-8">
         {/* Parts Orders Section */}
         <div className="mb-8">
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">

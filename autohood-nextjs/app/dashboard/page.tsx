@@ -129,7 +129,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="container-custom py-6 md:py-8">
+      <div className="container-custom py-6 md:py-8 pb-20 md:pb-8">
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
           {stats.map((stat, index) => (

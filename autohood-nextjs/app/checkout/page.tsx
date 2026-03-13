@@ -179,7 +179,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container-custom py-8">
+      <div className="container-custom py-8 pb-20 md:pb-8">
         <h1 className="text-3xl font-bold mb-6">Checkout</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

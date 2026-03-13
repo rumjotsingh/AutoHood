@@ -75,7 +75,7 @@ export default function AdminCarsPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="container-custom py-6 md:py-8">
+      <div className="container-custom py-6 md:py-8 pb-20 md:pb-8">
         <Link
           href="/admin"
           className="inline-flex items-center text-gray-900 hover:text-gray-700 mb-4 text-sm font-medium"

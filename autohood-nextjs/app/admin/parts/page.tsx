@@ -371,8 +371,8 @@ export default function AdminPartsPage() {
 
         {/* Add/Edit Part Modal */}
         {showAddModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto my-8">
               <div className="p-4 md:p-6 border-b sticky top-0 bg-white z-10">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl md:text-2xl font-bold text-gray-900">

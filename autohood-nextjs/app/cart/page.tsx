@@ -11,7 +11,7 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container-custom py-8">
+      <div className="container-custom py-8 pb-20 md:pb-8">
         <div className="flex items-center space-x-3 mb-6">
           <ShoppingCart className="w-8 h-8 text-primary" />
           <h1 className="text-3xl font-bold">Shopping Cart</h1>

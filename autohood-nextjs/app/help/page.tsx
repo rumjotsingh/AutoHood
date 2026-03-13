@@ -120,7 +120,7 @@ export default function HelpPage() {
         </div>
       </div>
 
-      <div className="container-custom py-16">
+      <div className="container-custom py-16 pb-20 md:pb-16">
         {/* Categories */}
         <div className="grid md:grid-cols-4 gap-6 mb-12">
           {categories.map((category, index) => (

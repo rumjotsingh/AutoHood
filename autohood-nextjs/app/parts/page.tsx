@@ -44,7 +44,7 @@ export default function PartsPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="container-custom py-8 md:py-12">
+      <div className="container-custom py-8 md:py-12 pb-20 md:pb-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -210,7 +210,7 @@ export default function PartsPage() {
 
       {/* Mobile Filter Modal */}
       {showFilters && (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-[60] md:hidden">
           <div 
             className="absolute inset-0 bg-black/20"
             onClick={() => setShowFilters(false)}

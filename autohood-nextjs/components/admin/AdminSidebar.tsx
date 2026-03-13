@@ -35,7 +35,7 @@ export default function AdminSidebar() {
       {/* Mobile Overlay */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/20 z-50 md:hidden"
+          className="fixed inset-0 bg-black/20 z-[60] md:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}

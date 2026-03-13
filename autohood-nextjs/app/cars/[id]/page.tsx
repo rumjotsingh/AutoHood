@@ -335,7 +335,7 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="container-custom py-6 md:py-8">
+      <div className="container-custom py-6 md:py-8 pb-20 md:pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2">
@@ -549,8 +549,8 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
 
       {/* Test Drive Modal */}
       {showTestDriveModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 my-8">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold text-gray-900">Book Test Drive</h3>
               <button
@@ -697,8 +697,8 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
 
       {/* Booking Modal */}
       {showBookingModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto my-8">
             <div className="p-6 border-b sticky top-0 bg-white z-10">
               <div className="flex items-center justify-between">
                 <div>
@@ -855,8 +855,8 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
 
       {/* Contact Dealer Modal */}
       {showContactModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 my-8">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold text-gray-900">Contact Dealer</h3>
               <button

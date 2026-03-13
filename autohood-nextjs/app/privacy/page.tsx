@@ -95,7 +95,7 @@ export default function PrivacyPage() {
         </div>
       </div>
 
-      <div className="container-custom py-16">
+      <div className="container-custom py-16 pb-20 md:pb-16">
         <div className="max-w-4xl mx-auto">
           {/* Introduction */}
           <motion.div

@@ -79,7 +79,7 @@ export default function ContactPage() {
         </div>
       </div>
 
-      <div className="container-custom py-16">
+      <div className="container-custom py-16 pb-20 md:pb-16">
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Contact Info Cards */}
           <div className="lg:col-span-1 space-y-6">

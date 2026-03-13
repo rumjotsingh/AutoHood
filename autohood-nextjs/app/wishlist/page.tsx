@@ -39,7 +39,7 @@ export default function WishlistPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container-custom py-8 md:py-12">
+      <div className="container-custom py-8 md:py-12 pb-20 md:pb-8">
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold mb-2">My Wishlist</h1>
           <p className="text-gray-600">
