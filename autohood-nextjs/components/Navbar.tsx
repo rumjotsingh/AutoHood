@@ -2,20 +2,26 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Heart, ShoppingCart, User, Menu, X, LogOut, LayoutDashboard, Package } from "lucide-react";
+import { Heart, ShoppingCart, LogOut, LayoutDashboard, Package } from "lucide-react";
 import { useAuthStore, useCartStore, useWishlistStore } from "@/store/useStore";
 import { useRouter, usePathname } from "next/navigation";
+import { useHasHydrated } from "@/lib/useHasHydrated";
 
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const hydrated = useHasHydrated();
   const [isScrolled, setIsScrolled] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   
   const { isAuthenticated, user, logout } = useAuthStore();
   const cartItems = useCartStore((state) => state.items);
   const wishlistItems = useWishlistStore((state) => state.items);
+
+  // Match SSR until localStorage rehydrates (avoids React #418)
+  const showAuth = hydrated && isAuthenticated;
+  const cartCount = hydrated ? cartItems.length : 0;
+  const wishlistCount = hydrated ? wishlistItems.length : 0;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -78,16 +84,16 @@ export default function Navbar() {
             {/* Right Actions */}
             <div className="flex items-center gap-2">
               {/* Desktop Icons */}
-              {isAuthenticated && (
+              {showAuth && (
                 <>
                   <Link 
                     href="/wishlist" 
                     className="hidden md:flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gray-100 transition-colors relative"
                   >
                     <Heart className="w-5 h-5 text-gray-700" />
-                    {wishlistItems.length > 0 && (
+                    {wishlistCount > 0 && (
                       <span className="absolute -top-1 -right-1 w-4 h-4 bg-gray-900 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                        {wishlistItems.length}
+                        {wishlistCount}
                       </span>
                     )}
                   </Link>
@@ -97,9 +103,9 @@ export default function Navbar() {
                     className="hidden md:flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gray-100 transition-colors relative"
                   >
                     <ShoppingCart className="w-5 h-5 text-gray-700" />
-                    {cartItems.length > 0 && (
+                    {cartCount > 0 && (
                       <span className="absolute -top-1 -right-1 w-4 h-4 bg-gray-900 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                        {cartItems.length}
+                        {cartCount}
                       </span>
                     )}
                   </Link>
@@ -107,7 +113,7 @@ export default function Navbar() {
               )}
 
               {/* User Menu - Desktop & Mobile */}
-              {isAuthenticated ? (
+              {showAuth ? (
                 <div className="relative">
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}

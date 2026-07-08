@@ -5,9 +5,12 @@ import Link from "next/link";
 import { Trash2, ShoppingCart } from "lucide-react";
 import { useCartStore } from "@/store/useStore";
 import { formatPrice } from "@/lib/utils";
+import { useHasHydrated } from "@/lib/useHasHydrated";
 
 export default function CartPage() {
+  const hydrated = useHasHydrated();
   const { items, removeItem, updateQuantity, total } = useCartStore();
+  const cartItems = hydrated ? items : [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -17,7 +20,7 @@ export default function CartPage() {
           <h1 className="text-3xl font-bold">Shopping Cart</h1>
         </div>
 
-        {items.length === 0 ? (
+        {cartItems.length === 0 ? (
           <div className="bg-white rounded-lg shadow-md p-12 text-center">
             <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h2 className="text-2xl font-semibold mb-2">Your cart is empty</h2>
@@ -30,7 +33,7 @@ export default function CartPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <div className="bg-white rounded-lg shadow-md">
-                {items.map((item) => (
+                {cartItems.map((item) => (
                   <div key={item.id} className="flex items-center p-6 border-b last:border-b-0">
                     <div className="relative w-24 h-24 flex-shrink-0">
                       <Image

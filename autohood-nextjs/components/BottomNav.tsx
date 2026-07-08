@@ -4,21 +4,27 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Search, Heart, ShoppingCart, User } from "lucide-react";
 import { useAuthStore, useCartStore, useWishlistStore } from "@/store/useStore";
+import { useHasHydrated } from "@/lib/useHasHydrated";
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const hydrated = useHasHydrated();
   const { isAuthenticated, user } = useAuthStore();
   const cartItems = useCartStore((state) => state.items);
   const wishlistItems = useWishlistStore((state) => state.items);
 
+  const showAuth = hydrated && isAuthenticated;
+  const cartCount = hydrated ? cartItems.length : 0;
+  const wishlistCount = hydrated ? wishlistItems.length : 0;
+
   const navItems = [
     { name: "Home", href: "/", icon: Home },
     { name: "Explore", href: "/cars", icon: Search },
-    { name: "Wishlist", href: "/wishlist", icon: Heart, badge: wishlistItems.length },
-    { name: "Cart", href: "/cart", icon: ShoppingCart, badge: cartItems.length },
+    { name: "Wishlist", href: "/wishlist", icon: Heart, badge: wishlistCount },
+    { name: "Cart", href: "/cart", icon: ShoppingCart, badge: cartCount },
     {
       name: "Account",
-      href: isAuthenticated ? (user?.role === "admin" ? "/admin" : "/dashboard") : "/login",
+      href: showAuth ? (user?.role === "admin" ? "/admin" : "/dashboard") : "/login",
       icon: User,
     },
   ];

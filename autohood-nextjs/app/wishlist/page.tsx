@@ -8,30 +8,34 @@ import { useAuthStore, useWishlistStore } from "@/store/useStore";
 import CarCard from "@/components/CarCard";
 import { Heart, ShoppingBag } from "lucide-react";
 import Link from "next/link";
+import { useHasHydrated } from "@/lib/useHasHydrated";
 
 export default function WishlistPage() {
   const router = useRouter();
+  const hydrated = useHasHydrated();
   const { isAuthenticated } = useAuthStore();
   const { items } = useWishlistStore();
+  const showAuth = hydrated && isAuthenticated;
+  const wishlistIds = hydrated ? items : [];
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (hydrated && !isAuthenticated) {
       router.push("/login");
     }
-  }, [isAuthenticated, router]);
+  }, [hydrated, isAuthenticated, router]);
 
   const { data: carsData, isLoading } = useQuery({
-    queryKey: ["wishlist-cars", items],
+    queryKey: ["wishlist-cars", wishlistIds],
     queryFn: async () => {
-      if (items.length === 0) return { data: { data: [] } };
-      const promises = items.map((id) => carsAPI.getById(id));
+      if (wishlistIds.length === 0) return { data: { data: [] } };
+      const promises = wishlistIds.map((id) => carsAPI.getById(id));
       const results = await Promise.all(promises);
       return { data: { data: results.map((r) => r.data.data) } };
     },
-    enabled: isAuthenticated && items.length > 0,
+    enabled: showAuth && wishlistIds.length > 0,
   });
 
-  if (!isAuthenticated) {
+  if (!hydrated || !isAuthenticated) {
     return null;
   }
 
@@ -43,7 +47,7 @@ export default function WishlistPage() {
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold mb-2">My Wishlist</h1>
           <p className="text-gray-600">
-            {items.length} {items.length === 1 ? "item" : "items"} saved
+            {wishlistIds.length} {wishlistIds.length === 1 ? "item" : "items"} saved
           </p>
         </div>
 
