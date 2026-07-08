@@ -11,41 +11,47 @@ const connectRedis = async () => {
   }
 
   try {
-    // Check if using Upstash
-    if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+    const redisHost = process.env.REDIS_HOST;
+    const useUpstash =
+      !redisHost &&
+      process.env.UPSTASH_REDIS_REST_URL &&
+      process.env.UPSTASH_REDIS_REST_TOKEN;
+
+    // Prefer local/Docker Redis when REDIS_HOST is set
+    if (useUpstash) {
       console.log('🔄 Connecting to Upstash Redis...'.cyan);
-      
+
       redisClient = new Redis({
         url: process.env.UPSTASH_REDIS_REST_URL,
         token: process.env.UPSTASH_REDIS_REST_TOKEN,
       });
 
-      // Test connection
       await redisClient.ping();
       console.log('✅ Upstash Redis Connected'.cyan.bold);
       return redisClient;
-    } else {
-      // Local Redis
-      console.log('🔄 Connecting to local Redis...'.cyan);
-      redisClient = createClient({
-        socket: {
-          host: process.env.REDIS_HOST || 'localhost',
-          port: process.env.REDIS_PORT || 6379,
-        },
-        password: process.env.REDIS_PASSWORD || undefined,
-      });
-
-      redisClient.on('error', (err) => {
-        console.error('❌ Redis Client Error:', err);
-      });
-
-      redisClient.on('connect', () => {
-        console.log('✅ Redis Connected'.cyan.bold);
-      });
-
-      await redisClient.connect();
-      return redisClient;
     }
+
+    console.log(
+      `🔄 Connecting to local Redis at ${redisHost || 'localhost'}:${process.env.REDIS_PORT || 6379}...`.cyan
+    );
+    redisClient = createClient({
+      socket: {
+        host: redisHost || 'localhost',
+        port: Number(process.env.REDIS_PORT) || 6379,
+      },
+      password: process.env.REDIS_PASSWORD || undefined,
+    });
+
+    redisClient.on('error', (err) => {
+      console.error('❌ Redis Client Error:', err);
+    });
+
+    redisClient.on('connect', () => {
+      console.log('✅ Redis Connected'.cyan.bold);
+    });
+
+    await redisClient.connect();
+    return redisClient;
   } catch (error) {
     console.error('❌ Redis connection failed:', error.message);
     console.log('⚠️  Continuing without Redis caching'.yellow);
