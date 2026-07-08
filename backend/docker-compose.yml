@@ -1,10 +1,11 @@
 services:
   redis:
     image: redis:7-alpine
+    container_name: autohood-redis
     restart: unless-stopped
     command: redis-server --appendonly yes
-    ports:
-      - "6379:6379"
+    expose:
+      - "6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -13,11 +14,14 @@ services:
       timeout: 3s
       retries: 5
       start_period: 5s
+    networks:
+      - app
 
   api:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: autohood-api
     restart: unless-stopped
     env_file:
       - .env
@@ -41,23 +45,16 @@ services:
       timeout: 5s
       retries: 5
       start_period: 25s
-
-  caddy:
-    image: caddy:2-alpine
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      api:
-        condition: service_healthy
+    networks:
+      - app
+      - caddy
 
 volumes:
   redis_data:
-  caddy_data:
-  caddy_config:
+
+networks:
+  app:
+    driver: bridge
+  caddy:
+    external: true
+    name: caddy
